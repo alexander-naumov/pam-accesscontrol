@@ -68,6 +68,16 @@ def check_log(logtype, SERVICE, rhost, user):
 def ids(LIST):
   return [L for L in LIST.split(",") if len(L)>0]
 
+
+def not_upper_last_element(logtype, config):
+  conf = []
+  for line in config:
+    if len(line.split(" "))>1:
+      line = " ".join([x for x in line.upper().split(" ")[:-1]]) + " " + line.split(" ")[-1]
+    conf.append(line)
+  return conf
+
+
 def configuration(logtype):
   conf_files = sorted(glob.glob('/etc/pamac.d/*.conf'))
   all_conf = []
@@ -75,7 +85,8 @@ def configuration(logtype):
     for cur_file in conf_files:
       try:
         with open(cur_file, 'r') as fd:
-          conf = fd.read().upper().split("\n")
+          conf = fd.read().split("\n")
+          conf = not_upper_last_element(logtype, conf)
           all_conf = all_conf + conf
       except:
         syslog.syslog(logtype + "can't open file: " + curfile)
@@ -103,6 +114,7 @@ def get_default(logtype):
   DEFAULT = 'CLOSE'
 
   for line in configuration(logtype):
+    line = line.upper()
     if line[:8] == "DEFAULT:":
       if line.split(":")[1] in ['CLOSE', 'OPEN']:
         syslog.syslog(logtype + "default access rule: " + line.split(":")[1])
@@ -136,7 +148,7 @@ def config_parser(logtype, SERVICE, DEBUG):
 
     else:
       dic['OPTION'] = str(rule.split(" ")[1] + " " + rule.split(" ")[2])
-      dic['LIST'] = ids(rule.lower().split(" ")[3])
+      dic['LIST'] = ids(rule.split(" ")[3])
       rules.append(dic)
   return rules
 
