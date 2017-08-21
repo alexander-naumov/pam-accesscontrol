@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sed -i '/accesscontrol/d' /etc/pam.d/sshd
+sed -i '/accesscontrol/d' /etc/pam.d/kdm
+sed -i '/accesscontrol/d' /etc/pam.d/login
+
+sed -i '/MaxAuthTries/d' /etc/ssh/sshd_config
+
+rm -rf /lib/security/pam_python.so

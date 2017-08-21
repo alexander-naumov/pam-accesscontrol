@@ -1,0 +1,25 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pamac
+Upstream-Contact: alexander_naumov@opensuse.org
+Source: https://github.com/lhm-limux/pamac 
+
+Files: *
+Copyright: 2017      Alexander Naumov <alexander_naumov@opensuse.org>
+License: GPL-3+
+
+Comment: It is assumed that the Debian packaging is licensed under the
+ same terms as the upstream project unless stated otherwise.
+
+License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or (at
+ your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License, version 3 can be found in "/usr/share/common-licenses/GPL-3".
