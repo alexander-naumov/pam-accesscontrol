@@ -1,5 +1,5 @@
 import subprocess as sp
-import syslog, os, sys, re, datetime, glob
+import syslog, os, sys, re, time, datetime, glob
 
 # This file is part of PAMAC (PAM Access Control).
 #
@@ -214,7 +214,11 @@ def dialog(rhost, user):
   It also notified user about session termination.
   At the moment it uses for SSH confirmations only (config file rule 'GUI').
   """
-  return sp.Popen(["/usr/share/pamac/kdialog-ssh.py", str(rhost), str(user), "ask"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+  while 1:
+    if len(str(sp.Popen(["pidof", "kdialog"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0])) == 0:
+      return sp.Popen(["/usr/share/pamac/kdialog-ssh.py", str(rhost), str(user), "ask"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+    else:
+      time.sleep(5)
 
 
 def check(logtype, access, i, rules, login, DEBUG):
