@@ -1,12 +1,12 @@
 .TH PAMAC "1" "Juni 2017"
 .SH NAME
-PAM Access Control (PAMAC) \- PAM plugin to contol the access to host via SSH, KDM and TTY.
+PAM Access Control (PAMAC) \- PAM plugin to contol the access to host via SSH, SDDM and TTY.
 
 .SH DESCRIPTION
-PAMAC is writen in python and use PAM to control access to the system via Secure Shell, KDM and 
+PAMAC is writen in python and use PAM to control access to the system via Secure Shell, SDDM and
 login(1). It makes it possible to manages access for some group of users or, for example, depend
-on configuration can ask you (by using standard KDE window) for confirmation about each new
-incoming SSH connection.
+on configuration can ask you (by using standard notification window) for confirmation about each
+new incoming SSH connection.
                                     _________
                       /= Yes/No ==>| KDialog |  <===>   local user
                       |            |_________|
@@ -41,5 +41,6 @@ Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 
 .SH "SEE ALSO"
 .BR pam (7),
+.BR sddm (1),
 .BR sshd (8),
 .BR pamac.d (5)

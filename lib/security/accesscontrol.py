@@ -313,7 +313,6 @@ def main(SERVICE, logtype, pamh, flags, argv):
 
   if mode == "GUI":
     ret = str(dialog(rhost, user))
-    #syslog.syslog(logtype + "kdialog returns = " + ret)
     try:
       if int(ret) == 0:
         create_log(logtype, SERVICE, rhost, user, mode, "creating new session")
@@ -350,8 +349,8 @@ def pam_sm_authenticate(pamh, flags, argv):
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
-  if str(pamh.service) == "kdm":
-    return main("KDM", logtype, pamh, flags, argv)
+  if str(pamh.service) == "sddm":
+    return main("XDM", logtype, pamh, flags, argv)
 
   return pamh.PAM_SUCCESS
 
@@ -373,8 +372,8 @@ def pam_sm_open_session(pamh, flags, argv):
 
   if str(pamh.service) == "sshd":
     SERVICE = "SSH"
-  elif str(pamh.service) == "kdm":
-    # We check KDM's rules on the 'auth' step.
+  elif str(pamh.service) == "sddm":
+    # We check XDM's rules on the 'auth' step.
     # (because we want to show error message (in CLOSE case)
     # and it's possible only BEFORE KDE-session starts)
     return pamh.PAM_SUCCESS

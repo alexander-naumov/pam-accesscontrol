@@ -5,10 +5,10 @@ echo "#PAMAC configuration" >> /etc/pam.d/sshd
 echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/sshd
 echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/sshd
 
-# PAM configuration KDM:
-echo "#PAMAC configuration" >> /etc/pam.d/kdm
-echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/kdm
-echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/kdm
+# PAM configuration XDM:
+echo "#PAMAC configuration" >> /etc/pam.d/sddm
+echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/sddm
+echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/sddm
 
 # PAM configuration TTY:
 echo "#PAMAC configuration" >> /etc/pam.d/login
@@ -18,7 +18,7 @@ echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/log
 
 if [ $(arch) == 'i686' ]
 then
-	cat /usr/share/goto-accesscontrol/pam_python32.so.base64 |base64 -d >/lib/security/pam_python.so
+	cat /usr/share/pamac/pam_python32.so.base64 |base64 -d >/lib/security/pam_python.so
 else
 	echo x86_64
 fi

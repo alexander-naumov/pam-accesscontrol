@@ -13,11 +13,11 @@ list of rules. Each rule has to include exactly 4 fields separated by spaces:
 SERVICE
 .RS 4
 defines type of \fIPAM\fR service that should be controled. It could be one of 3 types:
-\fISSH\fR, \fIKDM\fR and \fITTY\fR.
+\fISSH\fR, \fIXDM\fR and \fITTY\fR.
 .PP
-\fISSH\fR manages incoming SSH connections (from local- and remote hosts). \fIKDM\fR
-manages PAM configuration for the KDE login. \fITTY\fR is responsible for the PAM 'login'
-configuration that manages rules for the login(1) programs running on the /dev/tty devices.
+\fISSH\fR manages incoming SSH connections (from local- and remote hosts). \fIXDM\fR
+manages PAM configuration for the sddm(1). \fITTY\fR is responsible for configuration
+of the login(1) programs running on the /dev/tty devices.
 .RE
 
 .PP
@@ -161,15 +161,15 @@ User C: member of groups "linux-users" and "lpadmin"
 \fIConfiguration\fR 1:
 .PP
 .RS 5
-Member of group "admin" login via KDM. For all next users (group name is not important)
-access via SSH, KDM and TTY is closed, i.e. login is unpossible.
+Member of group "admin" login via XDM. For all next users (group name is not important)
+access via SSH, XDM and TTY is closed, i.e. login is unpossible.
 .PP
 .RS 7
 DEFAULT:CLOSE
 .br
-KDM OPEN GROUP admin
+XDM OPEN GROUP admin
 .br
-KDM NUMBER GROUP admin:1
+XDM NUMBER GROUP admin:1
 .RE
 .RE
 .PP
@@ -177,23 +177,25 @@ KDM NUMBER GROUP admin:1
 \fIConffiguration\fR 2:
 .PP
 .RS 5
-A login via KDM. B can to login only via SSH and only when A confirm it. No KDM or TTY
-for B should be possible. If A allows access for B, B can create more then just one
+A login via XDM. B can to login only via SSH and only when A confirm it. No XDM or TTY
+for B should be possible. If A allows access for B, B can create more then one
 SSH-connection. E and F can not to login while A and B are logged already.
 .PP
 .RS 7
 DEFAULT:CLOSE
 .br
-KDM OPEN GROUP linux-users
+XDM OPEN GROUP linux-users
 .br
-KDM NUMBER GROUP linux-users:1
+XDM NUMBER GROUP linux-users:1
 .br
 SSH GUI GROUP admin
 .br
 SSH NUMBER GROUP admin:1
 .RE
 .PP
-Dies kann immer für B gehen, oder nur mit Benutzerbestätigung, je nach Konfiguration:
+That will work for B only if A confirm establishing of the new SSH-connection.
+In case you want to allow access for B without asking, change option \fIGUI\fR
+to \fIOPEN\fR:
 .PP
 .RS 7
 "SSH GUI GROUP admin" => "SSH OPEN GROUP admin"
@@ -204,7 +206,7 @@ Dies kann immer für B gehen, oder nur mit Benutzerbestätigung, je nach Konfigu
 \fIConfiguration\fR 3:
 .PP
 .RS 5
-Everyone can to login via SSH, KDM and TTY.
+Everyone can to login via SSH, XDM and TTY.
 .PP
 .RS 7
 DEFAULT:OPEN
@@ -215,7 +217,7 @@ DEFAULT:OPEN
 \fIConfiguraion\fR 4:
 .PP
 .RS 5
-Everyone can to login KDM and TTY, but nobody via SSH.
+Everyone can to login XDM and TTY, but nobody via SSH.
 .PP
 .RS 7
 DEFAULT:OPEN
@@ -229,7 +231,7 @@ SSH CLOSE GROUP linux-users,linux,linux-user
 \fIConfiguraion\fR 5:
 .PP
 .RS 5
-Everyone can to login via KDM and TTY. Everyone can to login via SSH, but only with
+Everyone can to login via XDM and TTY. Everyone can to login via SSH, but only with
 confirmation (of X session owner). Please keep in mind, if there is no active X session
 (nobody can to confirm the creating of new SSH session), pamac interprets a GUI rule
 as a OPEN. In other words, SSH access will be open (remote users will still need to use
@@ -261,5 +263,6 @@ Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 
 .SH "SEE ALSO"
 .BR pam (7),
+.BR sddm (1),
 .BR sshd (8),
 .BR pamac (1)

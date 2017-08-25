@@ -1,9 +1,13 @@
 #!/bin/bash
 
 sed -i '/accesscontrol/d' /etc/pam.d/sshd
-sed -i '/accesscontrol/d' /etc/pam.d/kdm
+sed -i '/accesscontrol/d' /etc/pam.d/sddm
 sed -i '/accesscontrol/d' /etc/pam.d/login
 
-sed -i '/MaxAuthTries/d' /etc/ssh/sshd_config
 
-rm -rf /lib/security/pam_python.so
+if [ $(arch) == 'i686' ]
+then
+    echo x86_64
+else
+    rm -rf /lib/security/pam_python.so
+fi
