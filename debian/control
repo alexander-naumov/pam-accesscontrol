@@ -4,11 +4,11 @@ Standards-Version: 3.9.3
 Priority: extra
 Maintainer: Alexander Naumov <alexander_naumov@opensuse.org>
 Build-Depends: debhelper (>= 7.0.50~),
- config-package-dev (>= 5.0~ubuntu12.04.1),
+ config-package-dev
  cdbs
 
 Package: pamac
-Pre-Depends: coreutils (>= 8.26-3ubuntu3)
+Pre-Depends: coreutils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), opessh-server, libpam-python:amd64
 Description: Configurable PAM Access Control system.
