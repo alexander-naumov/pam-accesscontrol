@@ -37,8 +37,8 @@ def is_there(logtype, host, login, sessions):
   """
   item = 0
   for i in sessions:
-     if 'RemoteHost' in i and 'Service' in i and 'Remote' in i:
-       if i['Remote'] == 'yes' and i['Service'] == 'sshd':
+     if 'RemoteHost' in i and 'Service' in i and 'Remote' in i and 'State' in i and 'Name' in i:
+       if i['Remote'] == 'yes' and i['Service'] == 'sshd' and i['State'] != "closing":
          if host == i['RemoteHost'] and login == i['Name']:
            item = item+1
   if item > 1:
@@ -114,17 +114,17 @@ if __name__ == '__main__':
           sys.exit(2)
 
         if window == "info":
-          if n_conn == 1:
+          if n_conn == 0:
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-              ' && kdialog --msgbox "SSH connection has ended.\n\nHost: '+str(rhost) +'\nUser: ' +str(rname) +'"',
-              stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+                   ' && /usr/bin/kdialog --msgbox "SSH connection has ended.\n\nHost: '+str(rhost) +'\nUser: ' +str(rname) +'"',
+                   stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
         elif window == "ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-              ' && kdialog --title "New SSH connection" --yesno "New SSH connection established. Allow it?\n\nHost: '
-              +str(rhost) +'\nUser: ' +str(rname)+ '\n"', stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+                   ' && /usr/bin/kdialog --msgbox "New SSH connection" --yesno "New SSH connection established. Allow it?\n\nHost: '
+                   +str(rhost) + '\nUser: ' +str(rname)+ '\n"', stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print "0"
             sys.exit(0)
