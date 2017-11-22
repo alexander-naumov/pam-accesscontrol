@@ -1,4 +1,4 @@
-Source: pamac
+Source: pam-accesscontrol
 Section: misc
 Standards-Version: 3.9.3
 Priority: extra
@@ -7,10 +7,10 @@ Build-Depends: debhelper (>= 7.0.50~),
  config-package-dev
  cdbs
 
-Package: pamac
+Package: pam-accesscontrol
 Pre-Depends: coreutils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), opessh-server, libpam-python:amd64
-Description: Configurable PAM Access Control system.
+Description: Configurable PAM plugin to control access to host.
  PAM plugin (writen in python) to contol access to host
  via SSH, KDM and TTY.

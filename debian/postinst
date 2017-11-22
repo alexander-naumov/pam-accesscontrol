@@ -1,19 +1,15 @@
 #!/bin/bash
 
-# PAM configuration SSH:
-echo "#PAMAC configuration" >> /etc/pam.d/sshd
-echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/sshd
-echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/sshd
+# PAM configuration for SSH, login(1), sddm, xdm, gdm, kdm and lightdm
 
-# PAM configuration XDM:
-echo "#PAMAC configuration" >> /etc/pam.d/sddm
-echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/sddm
-echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/sddm
-
-# PAM configuration TTY:
-echo "#PAMAC configuration" >> /etc/pam.d/login
-echo "auth        required     pam_python.so accesscontrol.py" >> /etc/pam.d/login
-echo "session     required     pam_python.so accesscontrol.py" >> /etc/pam.d/login
+for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
+    if [ -f "/etc/pam.d/$i" ]; then
+      echo "#PAM-accesscontrol configuration" >> "/etc/pam.d/$i"
+      echo "auth        required     pam_python.so accesscontrol.py" >> "/etc/pam.d/$i"
+      echo "session     required     pam_python.so accesscontrol.py" >> "/etc/pam.d/$i"
+      echo \[DONE\] successfully configured: $i
+    fi
+done
 
 
 if [ $(arch) == 'i686' ]
