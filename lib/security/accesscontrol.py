@@ -1,7 +1,7 @@
 import subprocess as sp
 import syslog, os, sys, re, time, datetime, glob
 
-# This file is part of PAMAC (PAM Access Control).
+# This file is part of pam-accesscontrol.
 #
 #    Copyright (C) 2017  Alexander Naumov <alexander_naumov@opensuse.org>
 #
@@ -58,7 +58,7 @@ def check_log(logtype, SERVICE, rhost, user):
         if L[4] in ["new", "granted"]:
           syslog.syslog(logtype + "closing session - user:" + str(user) + " host:"+str(rhost))
           create_log(logtype, SERVICE, rhost, user, L[1], "closing session")
-          if L[1] == "GUI":
+          if L[1] == "ASK":
             return 1
           else:
             return 0
@@ -117,7 +117,7 @@ def get_default(logtype):
     line = line.upper()
     if line[:8] == "DEFAULT:":
       if line.split(":")[1] in ['CLOSE', 'OPEN']:
-        syslog.syslog(logtype + "default access rule: " + line.split(":")[1])
+        #syslog.syslog(logtype + "default access rule: " + line.split(":")[1])
         DEFAULT = line.split(":")[1]
       else:
         syslog.syslog(logtype + "default: CLOSE")
@@ -126,6 +126,8 @@ def get_default(logtype):
 
   if DEBUG == 'TRUE': DEBUG = True
   else:               DEBUG = False
+
+  if DEBUG: syslog.syslog(logtype + "default access rule: " + DEFAULT)
   return DEFAULT, DEBUG
 
 
@@ -140,7 +142,7 @@ def config_parser(logtype, SERVICE, DEBUG):
     if len(rule.split(" ")) != 4:
       if DEBUG: syslog.syslog(logtype + "broken rule, wrong number of options... skipping: " +str(rule))
 
-    elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'GUI','NUMBER']:
+    elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER']:
       if DEBUG: syslog.syslog(logtype + "second parameter is broken: " +str(rule))
 
     elif rule.split(" ")[2] not in ['USER', 'GROUP']:
@@ -220,27 +222,22 @@ def get_users_from_group(group):
     sys.exit(2)
 
 
-def dialog(rhost, user):
+def dialog(DEBUG, rhost, user, flavor):
   """
   This calls UserInterface to get confirmations about creating new session.
   It also notified user about session termination.
-  At the moment it uses for SSH confirmations only (config file rule 'GUI').
   """
-  while 1:
-    if len(str(sp.Popen(["pidof", "kdialog"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0])) == 0:
-      return sp.Popen(["/usr/share/pamac/kdialog-ssh.py", str(rhost), str(user), "ask"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
-    else:
-      time.sleep(5)
+  return sp.Popen(["/usr/share/pam-accesscontrol/notifications.py", str(DEBUG), str(rhost), str(user), flavor], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
 
 
 def check(logtype, access, i, rules, login, DEBUG):
   """
   It get list of rules, parses these and fills 'access' dictonary with 4
-  lists: CLOSE, GUI, OPEN and NUMBER.
+  lists: CLOSE, ASK, OPEN and NUMBER.
   """
   for r in rules:
     if DEBUG: syslog.syslog(logtype + "rules: "+ str(r))
-    if i['OPTION'].split(" ")[0] == r: #OPEN, GUI, CLOSE, NUMBER
+    if i['OPTION'].split(" ")[0] == r: #OPEN, ASK, CLOSE, NUMBER
       if DEBUG: syslog.syslog(logtype + "that was interpreted as " + r +": "+ str(i['OPTION'].split(" ")[0]))
 
       if i['OPTION'].split(" ")[1] == "USER":
@@ -258,21 +255,20 @@ def check(logtype, access, i, rules, login, DEBUG):
   return access
 
 
-def allow(SERVICE, logtype, host, login):
-  access = {"OPEN":[], "GUI":[], "CLOSE":[], "NUMBER":[]}
+def allow(SERVICE, logtype, host, login, DEFAULT, DEBUG):
+  access = {"OPEN":[], "ASK":[], "CLOSE":[], "NUMBER":[]}
   ret = None
-  DEFAULT, DEBUG = get_default(logtype)
 
   for rule in config_parser(logtype, SERVICE, DEBUG):
     if DEBUG:
       syslog.syslog(logtype + "----------------------------------------------")
       syslog.syslog(logtype + "rule = " +str(rule))
-    access.update(check(logtype, access, rule, ["OPEN", "GUI", "CLOSE", "NUMBER"], login, DEBUG))
+    access.update(check(logtype, access, rule, ["OPEN", "ASK", "CLOSE", "NUMBER"], login, DEBUG))
 
   if DEBUG:
     syslog.syslog("OPEN for  : "+str(access['OPEN']))
     syslog.syslog("CLOSE for : "+str(access['CLOSE']))
-    syslog.syslog("GUI for   : "+str(access['GUI']))
+    syslog.syslog("ASK for   : "+str(access['ASK']))
     syslog.syslog("NUMBER for: "+str(access['NUMBER']))
 
   if len(access['NUMBER']) > 0:
@@ -284,8 +280,8 @@ def allow(SERVICE, logtype, host, login):
     if i in access['CLOSE']: access['OPEN'].remove(i)
 
   if login in access['CLOSE']:  return "CLOSE"
-  elif login in access['GUI']:
-    if SERVICE == "SSH":        return "GUI"
+  elif login in access['ASK']:
+    if SERVICE == "SSH":        return "ASK"
     else:                       return "CLOSE"
   elif login in access['OPEN']: return "OPEN"
   else:                         return DEFAULT
@@ -297,22 +293,25 @@ def main(SERVICE, logtype, pamh, flags, argv):
   to define next steps. Function 'main' uses PAM object 'pamh' and
   its methods to define name of the remote host and user's name.
   """
+
+  DEFAULT, DEBUG = get_default(logtype)
+
   pamh.authtok
   try:
     user = pamh.get_user()
-    syslog.syslog(logtype + "remote user: "+ str(user))
+    #if DEBUG: syslog.syslog(logtype + "remote_user: "+ str(user))
     rhost = pamh.rhost
-    syslog.syslog(logtype + "remote host: "+ str(rhost))
-
+    #if DEBUG: syslog.syslog(logtype + "remote_host: "+ str(rhost))
   except pamh.exception, e:
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return e.pam_result
 
-  mode = allow(SERVICE, logtype, rhost, user)
-  syslog.syslog(logtype + "main got from allow: "+str(mode))
+  mode = allow(SERVICE, logtype, rhost, user, DEFAULT, DEBUG)
+  if DEBUG: syslog.syslog(logtype + "main got from allow: "+str(mode))
 
-  if mode == "GUI":
-    ret = str(dialog(rhost, user))
+  if mode == "ASK":
+    ret = str(dialog(DEBUG, rhost, user, "ssh-ask"))
+    if DEBUG: syslog.syslog(logtype + "RET = " + str(ret))
     try:
       if int(ret) == 0:
         create_log(logtype, SERVICE, rhost, user, mode, "creating new session")
@@ -320,12 +319,14 @@ def main(SERVICE, logtype, pamh, flags, argv):
       else:
         return pamh.PAM_AUTH_ERR
     except:
-      syslog.syslog(logtype + "something goes wrong... no return value from kdialog")
+      syslog.syslog(logtype + "something goes wrong... no return value from Tk window")
       return pamh.PAM_AUTH_ERR
 
   elif mode == "CLOSE":
     create_log(logtype, SERVICE, rhost, user, mode, "access denied")
     syslog.syslog(logtype + "access denied")
+    if SERVICE == "XDM":
+      dialog(DEBUG, rhost, user, "access-denied-xorg")
     return pamh.PAM_AUTH_ERR
 
   elif mode == "OPEN":
@@ -339,8 +340,8 @@ def main(SERVICE, logtype, pamh, flags, argv):
 
 
 def pam_sm_authenticate(pamh, flags, argv):
-  logtype = "pamac(" + str(pamh.service) + "): "
-  syslog.syslog(logtype + "authenticate")
+  logtype = "pam-accesscontrol(" + str(pamh.service) + "): "
+  syslog.syslog(logtype + "authentication phase")
   pamh.authtok
   try:
     syslog.syslog(logtype + "remote user: "+ str(pamh.get_user()))
@@ -349,26 +350,28 @@ def pam_sm_authenticate(pamh, flags, argv):
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
-  if str(pamh.service) == "sddm":
+  if str(pamh.service) in ["sddm","lightdm","xdm","kdm","gdm"]:
     return main("XDM", logtype, pamh, flags, argv)
 
   return pamh.PAM_SUCCESS
 
 
 def pam_sm_close_session(pamh, flags, argv):
-  logtype = "pamac(" + str(pamh.service) + "): "
+  logtype = "pam-accesscontrol(" + str(pamh.service) + "): "
   syslog.syslog(logtype + "close session")
 
   if not check_log(logtype, "SSH", str(pamh.rhost), str(pamh.get_user())):
     syslog.syslog(logtype + "no need to notify")
   else:
-    sp.Popen(["/usr/share/pamac/kdialog-ssh.py", str(pamh.rhost), str(pamh.get_user()), "info"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    syslog.syslog(logtype + "SHOW ME WINDOW")
+    DEFAULT, DEBUG = get_default(logtype)
+    dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "ssh-info")
 
   return pamh.PAM_SUCCESS
 
 
 def pam_sm_open_session(pamh, flags, argv):
-  logtype = "pamac(" + str(pamh.service) + "): "
+  logtype = "pam-accessconrol (" + str(pamh.service) + "): "
 
   if str(pamh.service) == "sshd":
     SERVICE = "SSH"

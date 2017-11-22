@@ -1,6 +1,6 @@
 .TH PAMAC "1" "Juni 2017"
 .SH NAME
-PAM Access Control (PAMAC) \- PAM plugin to contol the access to host via SSH, SDDM and TTY.
+PAM-accesscontrol \- PAM plugin to contol the access to host via SSH, SDDM and TTY.
 
 .SH DESCRIPTION
 PAMAC is writen in python and use PAM to control access to the system via Secure Shell, SDDM and
@@ -32,7 +32,7 @@ Via this PAM module happen communication between PAM itself and PAM python plugi
 .I /var/log/pamac-<JAHR>-<MONAT>.log
 Logfile
 .TP
-.I /etc/pamac.d/*.conf
+.I /etc/pam-accesscontrol.d/*.conf
 Configurationfile
 .PP
 
@@ -43,4 +43,4 @@ Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 .BR pam (7),
 .BR sddm (1),
 .BR sshd (8),
-.BR pamac.d (5)
+.BR pam-accesscontrol.d (5)

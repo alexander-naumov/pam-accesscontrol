@@ -1,22 +1,22 @@
 #!/usr/bin/python -Es
 # -*- coding: utf-8 -*-
 
-# This file is part of PAMAC (PAM Access Control).
+# This file is part of pam-accesscontrol.
 #
 #    Copyright (C) 2017  Alexander Naumov <alexander_naumov@opensuse.org>
 #
-#    PAMAC is free software: you can redistribute it and/or modify
+#    PAM-ACCESSCONTROL is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    PAMAC is distributed in the hope that it will be useful,
+#    PAM-ACCESSCONTROL is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with PAMAC.  If not, see <http://www.gnu.org/licenses/>.
+#    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import syslog, sys, os, re
@@ -26,7 +26,7 @@ def id_info(logtype, user_id):
   try:
     return sp.Popen(['getent', 'passwd', user_id], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split(":")[0]
   except:
-    syslog.syslog(logtype + "no info from getent... 'libc-bin' is not installed?")
+    syslog.syslog(logtype + "no info from getent...")
     sys.exit(2)
 
 
@@ -41,7 +41,7 @@ def is_there(logtype, host, login, sessions):
        if i['Remote'] == 'yes' and i['Service'] == 'sshd' and i['State'] != "closing":
          if host == i['RemoteHost'] and login == i['Name']:
            item = item+1
-  if item > 1:
+  if item > 0:
     syslog.syslog(logtype + "user:"+ str(login) + " host:" + str(host) + " is connected already to this host")
   return item
 
@@ -68,7 +68,6 @@ def session_info(logtype):
 
   for i in info.split('\n')[1:-2]:
     if len(i) > 0: sessions.append([i for i in i.split(" ") if len(i) > 0])
-    #print [i for i in i.split(" ") if len(i) > 0][0]
 
   for i in sessions:
     dic = {}
@@ -82,26 +81,72 @@ def session_info(logtype):
       if re.search("RemoteHost=",s): dic['RemoteHost'] = s.split('=')[1]
       if re.search("Type=",s):       dic['Type'] = s.split('=')[1]
       if re.search("State=",s):      dic['State'] = s.split('=')[1]
+      if re.search("Class=",s):      dic['Class'] = s.split('=')[1]
     LIST.append(dic)
   return LIST
 
 
+def get_xauthority(name):
+  for proc in sp.Popen(['pgrep', name], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n"):
+    if len(proc)>0:
+      try:
+        int(proc)
+        try:
+          with open("/proc/" + str(proc) + "/environ" ,"r") as f: buf = f.read()
+          if "XAUTHORITY" in buf:
+            buf = buf.split("XAUTHORITY")[-1]
+            buf = buf.split("}")[0]
+            buf = buf[1:] + "}"
+            return str(buf)
+        except:
+          syslog.syslog(logtype + "can't open file /proc/" + str(proc) + "/environ ...")
+      except:
+        syslog.syslog(logtype + "no process found...")
+
+
 if __name__ == '__main__':
-  if (len(sys.argv) != 4):
-    print ("usage: " + sys.argv[0] + " <HOST> + <LOGIN> + [ask | info]")
+  if (len(sys.argv) != 5):
+    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ssh-ask | ssh-info | access-denied-xorg]")
     sys.exit(1)
 
-  logtype = "pamac(sshd): "
-  if sys.argv[1]: rhost = sys.argv[1]
-  if sys.argv[2]: rname = sys.argv[2]
-  if sys.argv[3]: window = sys.argv[3]
+  DEBUG = False
+  if sys.argv[1] == "True": DEBUG = True
+  if sys.argv[2]: rhost  = sys.argv[2]
+  if sys.argv[3]: rname  = sys.argv[3]
+  if sys.argv[4]: window = sys.argv[4]
+
+  if window == "access-denied-xorg": logtype = "pam-accesscontrol(Xorg): "
+  else:                              logtype = "pam-accesscontrol(sshd): "
+
+  if DEBUG:
+    syslog.syslog(logtype + "DEBUG  = " + str(DEBUG))
+    syslog.syslog(logtype + "HOST   = " + str(rhost))
+    syslog.syslog(logtype + "NAME   = " + str(rname))
+    syslog.syslog(logtype + "WINDOW = " + str(window))
 
   sessions = session_info(logtype)
   if not sessions:
     syslog.syslog(logtype + "'loginctl' returns nothing...")
+
+  elif window == "access-denied-xorg":
+    if DEBUG: syslog.syslog(logtype + "ACCESS-DENIED-XORG")
+    for i in sessions:
+      if i['Class'] == 'greeter':
+        if DEBUG: syslog.syslog(logtype + "name = " + str(i['Name']))
+        xauth = get_xauthority(str(i['Name']))
+        if DEBUG: syslog.syslog(logtype + "XAUTHORITY = " + str(xauth))
+        if DEBUG: syslog.syslog(logtype + "DISPLAY = " + str(i['Display']))
+
+        print (sp.call('export DISPLAY=' + str(i['Display']) +
+                   ' && export XAUTHORITY=' + str(xauth) +
+                   ' && /usr/share/pamac/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' &',
+                     stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+        print "0"
+        sys.exit(0)
   else:
     n_conn = is_there(logtype, rhost, rname, sessions)
     syslog.syslog(logtype + "number of SSH sessions: "+str(n_conn))
+
 
   active = 0
   for i in sessions:
@@ -113,23 +158,23 @@ if __name__ == '__main__':
           syslog.syslog(logtype + "can't change user")
           sys.exit(2)
 
-        if window == "info":
+        if window == "ssh-info":
           if n_conn == 0:
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                   ' && /usr/bin/kdialog --msgbox "SSH connection has ended.\n\nHost: '+str(rhost) +'\nUser: ' +str(rname) +'"',
-                   stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+                           ' && /usr/share/pamac/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' &',
+                           stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
-        elif window == "ask":
+        elif window == "ssh-ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                   ' && /usr/bin/kdialog --msgbox "New SSH connection" --yesno "New SSH connection established. Allow it?\n\nHost: '
-                   +str(rhost) + '\nUser: ' +str(rname)+ '\n"', stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+                           ' && /usr/share/pamac/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
+                           stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print "0"
             sys.exit(0)
 
-  if not active and window != "info":
+  if not active and window != "ssh-info":
     syslog.syslog(logtype + "can't find owner of X session and ask him => access granted")
     print "0"
     sys.exit(0)

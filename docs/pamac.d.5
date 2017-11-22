@@ -1,10 +1,10 @@
 .TH "PAMAC\&.CONF" "5" "22/06/2017" "File Formats Manual"
 .SH NAME
-/etc/pamac.d/pamac.conf \- pamac configuration file.
+/etc/pam-accesscontrol.d/pam-accesscontrol.conf \- configuration file.
 
 .SH CONFIGURATION
-To configure PAMAC you will need to fill config file. This file should contain
-list of rules. Each rule has to include exactly 4 fields separated by spaces:
+To configure PAM-accesscontrol you will need to fill config file. This file should
+contain list of rules. Each rule has to include exactly 4 fields separated by spaces:
 .PP
 <SERVICE> <OPTION> <TARGET> <PARAMETERS>
 
@@ -23,7 +23,7 @@ of the login(1) programs running on the /dev/tty devices.
 .PP
 OPTION
 .RS 4
-behavior for its SERVICE. It could be one of 4 types: \fIOPEN\fR, \fICLOSE\fR, \fIGUI\fR
+behavior for its SERVICE. It could be one of 4 types: \fIOPEN\fR, \fICLOSE\fR, \fIASK\fR
 or \fINUMBER\fR. They change the access configuration.
 
 .RS 6
@@ -31,11 +31,11 @@ or \fINUMBER\fR. They change the access configuration.
 .RE
 
 .RS 6
-\fIGUI\fR is used to open access, but only with user confirmation. In this case local user
-will be asked (KDialog window) about permission for creating new session. After new session
+\fIASK\fR is used to open access, but only with user confirmation. In this case local user
+will be asked (by using Tk window) about permission for creating new session. After new session
 will be established, remote user can easily create next sessions without new confirmations.
 This will be interpreted as a same session until there is at lest one active open session.
-After remote user closes last session, ACCESSCONTROL calls notification (KDialog window) to
+After remote user closes last session, pam-accesscontrol calls an notification (Tk window) to
 inform local user about it. After that for creating a new session it will be need to get
 confirmation again.
 .RE
@@ -188,17 +188,17 @@ XDM OPEN GROUP linux-users
 .br
 XDM NUMBER GROUP linux-users:1
 .br
-SSH GUI GROUP admin
+SSH ASK GROUP admin
 .br
 SSH NUMBER GROUP admin:1
 .RE
 .PP
 That will work for B only if A confirm establishing of the new SSH-connection.
-In case you want to allow access for B without asking, change option \fIGUI\fR
+In case you want to allow access for B without asking, change option \fIASK\fR
 to \fIOPEN\fR:
 .PP
 .RS 7
-"SSH GUI GROUP admin" => "SSH OPEN GROUP admin"
+"SSH ASK GROUP admin" => "SSH OPEN GROUP admin"
 .RE
 .RE
 .PP
@@ -240,7 +240,7 @@ passwords or passphase for ssh-keys, i.e. standart SSH auth mechanism).
 .RS 7
 DEFAULT:OPEN
 .br
-SSH GUI GROUP linux-users,linux,linux-user
+SSH ASK GROUP linux-users,linux,linux-user
 .RE
 .RE
 .PP
@@ -265,4 +265,4 @@ Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 .BR pam (7),
 .BR sddm (1),
 .BR sshd (8),
-.BR pamac (1)
+.BR pam-accesscontrol (1)
