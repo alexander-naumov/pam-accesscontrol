@@ -41,7 +41,7 @@ def is_there(logtype, host, login, sessions):
        if i['Remote'] == 'yes' and i['Service'] == 'sshd' and i['State'] != "closing":
          if host == i['RemoteHost'] and login == i['Name']:
            item = item+1
-  if item > 0:
+  if item > 1:
     syslog.syslog(logtype + "user:"+ str(login) + " host:" + str(host) + " is connected already to this host")
   return item
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
         print (sp.call('export DISPLAY=' + str(i['Display']) +
                    ' && export XAUTHORITY=' + str(xauth) +
-                   ' && /usr/share/pamac/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' &',
+                   ' && /usr/share/pam-accesscontrol/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
         print "0"
         sys.exit(0)
@@ -159,16 +159,18 @@ if __name__ == '__main__':
           sys.exit(2)
 
         if window == "ssh-info":
+          syslog.syslog("Yahoooo")
           if n_conn == 0:
+            syslog.syslog("Yahoooo")
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pamac/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' &',
+                           ' && /usr/share/pam-accesscontrol/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' &',
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
         elif window == "ssh-ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pamac/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
+                           ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print "0"

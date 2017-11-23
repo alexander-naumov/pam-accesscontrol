@@ -25,7 +25,7 @@ def create_log(logtype, SERVICE, rhost, user, mode, msg):
   date <SPACE> current time <TAB> service name <TAB> rule <TAB> username@hostname <TAB> some_text <newline>
   """
   now  = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-  FILE = '/var/log/pamac-' + str(datetime.datetime.now().strftime("%Y-%m")) + '.log'
+  FILE = '/var/log/pam-accesscontrol-' + str(datetime.datetime.now().strftime("%Y-%m")) + '.log'
 
   if not rhost: rhost = "localhost"
   try:
@@ -42,7 +42,7 @@ def check_log(logtype, SERVICE, rhost, user):
   In fact we have mulisessions (sessions inside other sessions), but we should be
   notified only about last one.
   """
-  FILE = '/var/log/pamac-' + str(datetime.datetime.now().strftime("%Y-%m")) + '.log'
+  FILE = '/var/log/pam-accesscontrol-' + str(datetime.datetime.now().strftime("%Y-%m")) + '.log'
 
   try:
     fd = open(FILE, 'a+')
@@ -79,7 +79,7 @@ def not_upper_last_element(logtype, config):
 
 
 def configuration(logtype):
-  conf_files = sorted(glob.glob('/etc/pamac.d/*.conf'))
+  conf_files = sorted(glob.glob('/etc/pam-accesscontrol.d/*.conf'))
   all_conf = []
   if conf_files:
     for cur_file in conf_files:
@@ -295,6 +295,7 @@ def main(SERVICE, logtype, pamh, flags, argv):
   """
 
   DEFAULT, DEBUG = get_default(logtype)
+  syslog.syslog(logtype + "DEBUG is set to " + str(DEBUG))
 
   pamh.authtok
   try:

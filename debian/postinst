@@ -14,7 +14,7 @@ done
 
 if [ $(arch) == 'i686' ]
 then
-	cat /usr/share/pamac/pam_python32.so.base64 |base64 -d >/lib/security/pam_python.so
+	cat /usr/share/pam-accesscontrol/pam_python32.so.base64 |base64 -d >/lib/security/pam_python.so
 else
 	echo x86_64
 fi

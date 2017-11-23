@@ -8,12 +8,12 @@ login(1). It makes it possible to manages access for some group of users or, for
 on configuration can ask you (by using standard notification window) for confirmation about each
 new incoming SSH connection.
                                     _________
-                      /= Yes/No ==>| KDialog |  <===>   local user
-                      |            |_________|
-                 _____|__________ 
-                |                |                                     +-+-+-+     <----TTY---->
-    ----------- |     PAMAC      | <=============> pam_python.so <==>  + PAM +     <----KDM---->   Gast
-    |           |________________|                                     +-+-+-+          SSH---->
+                     /= Yes/No ==>| KDialog |  <===>  local user
+                     |            |_________|
+               ______|__________ 
+              |                 |                                      +-+-+-+     <----TTY---->
+    ----------|PAM-accesscontrol| <=============> pam_python.so  <===> + PAM +     <----KDM---->   Gast
+    |         |_________________|                                      +-+-+-+          SSH---->
     |                   |      |                                         ||              |
     |                   |      |__________                               ||              |
     |                   |                 |                            _________         |
@@ -21,19 +21,19 @@ new incoming SSH connection.
  Logfile        Configration file       Syslog        <============== | Server  |  <-----+
                                                                       |_________|
 
-PAMAC configuration happen by filling rules to the configuration file.
-PAMAC uses Syslog for every login-events.
+PAM-accesscontrol configuration happen by filling rules to the configuration file.
+PAM-accesscontrol uses Syslog for every login-events.
 
 .SH FILES
 .TP
 .I /lib/security/pam_python.so
 Via this PAM module happen communication between PAM itself and PAM python plugins.
 .TP
-.I /var/log/pamac-<JAHR>-<MONAT>.log
+.I /var/log/pam-accesscontrol-<JAHR>-<MONAT>.log
 Logfile
 .TP
 .I /etc/pam-accesscontrol.d/*.conf
-Configurationfile
+Configfile
 .PP
 
 .SH AUTOR

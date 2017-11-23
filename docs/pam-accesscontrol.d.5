@@ -1,4 +1,4 @@
-.TH "PAMAC\&.CONF" "5" "22/06/2017" "File Formats Manual"
+.TH "PAM-ACCESSCONTROL\&.CONF" "5" "23/11/2017" "File Formats Manual"
 .SH NAME
 /etc/pam-accesscontrol.d/pam-accesscontrol.conf \- configuration file.
 
@@ -140,7 +140,7 @@ DEBUG:True
 .RE
 
 .PP
-PAMAC supports comments in config file. Comments start with the hash character,
+PAM-accesscontrol supports comments in config file. Comments start with the hash character,
 #, and extend to the end of the physical line (exactly like for most configuration files
 of the UNIX/Linux servers).
 .PP
@@ -233,9 +233,9 @@ SSH CLOSE GROUP linux-users,linux,linux-user
 .RS 5
 Everyone can to login via XDM and TTY. Everyone can to login via SSH, but only with
 confirmation (of X session owner). Please keep in mind, if there is no active X session
-(nobody can to confirm the creating of new SSH session), pamac interprets a GUI rule
-as a OPEN. In other words, SSH access will be open (remote users will still need to use
-passwords or passphase for ssh-keys, i.e. standart SSH auth mechanism).
+(nobody can to confirm the creating of new SSH session), pam-accesscontrol interprets an
+ASK rule as OPEN. In other words, SSH access will be open (remote users will still need
+to use passwords or passphase for ssh-keys, i.e. standart SSH auth mechanism).
 .PP
 .RS 7
 DEFAULT:OPEN

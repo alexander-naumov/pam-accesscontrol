@@ -20,30 +20,41 @@
 
 
 import syslog, os, sys
-import tkinter
-from tkinter import messagebox
+from PyQt4 import QtGui
+
+class SSH_INFO(QtGui.QWidget):
+  def __init__(self, USER, HOST):
+    super(SSH_INFO, self).__init__()
+    reply = QtGui.QMessageBox.information(self, 'SSH disconnection',
+            "SSH connection has been ended.\n\nUser: " + USER + "\nHost: " + HOST)
+
+class SSH_ASK(QtGui.QWidget):
+  def __init__(self, USER, HOST):
+    super(SSH_ASK, self).__init__()
+    reply = QtGui.QMessageBox.question(self, 'New SSH connection',
+            "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
+            + USER + "\nHost: " + HOST, QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+    if reply == QtGui.QMessageBox.Yes:
+      sys.exit(0)
+    else:
+      sys.exit(1)
+
+class ACCESS_DENIED(QtGui.QWidget):
+  def __init__(self, USER):
+    super(ACCESS_DENIED, self).__init__()
+    reply = QtGui.QMessageBox.information(self, 'ACCESS DENIED',
+            "Login is not possible for user " + str(USER) + ".\nACCESS DENIED.")
+
+
 
 if __name__ == '__main__':
   if (len(sys.argv) != 4) or sys.argv[1] not in ["ssh-ask","ssh-info","access-denied-xorg"]:
     print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER")
     sys.exit(1)
 
-  root = tkinter.Tk()
-  root.withdraw()
+  app = QtGui.QApplication(sys.argv)
 
-  ret = 'yes'
-
-  if sys.argv[1] == "ssh-ask":
-    ret = messagebox.askquestion("New SSH connection",
-            "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
-            + str(sys.argv[3]) + "\nHost: " + str(sys.argv[2]), icon='warning')
-
-  elif sys.argv[1] == "ssh-info":
-    ret = messagebox.showinfo("SSH disconection",
-            "SSH connection has been ended.\n\nHost: " + str(sys.argv[3]) + "\nUser: " + str(sys.argv[2]))
-
-  elif sys.argv[1] == "access-denied-xorg":
-    ret = messagebox.showinfo("", "ACCESS DENIED.\nLogin not possible.", icon='warning')
-
-  if ret == 'yes': sys.exit(0)
-  else: sys.exit(1)
+  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(sys.argv[2]))
+  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(sys.argv[2]))
+  elif sys.argv[1] == "access-denied-xorg": ACCESS_DENIED(str(sys.argv[3]))
