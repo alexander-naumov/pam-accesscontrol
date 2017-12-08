@@ -20,30 +20,30 @@
 
 
 import syslog, os, sys
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
-class SSH_INFO(QtGui.QWidget):
+class SSH_INFO(QtWidgets.QWidget):
   def __init__(self, USER, HOST):
     super(SSH_INFO, self).__init__()
-    reply = QtGui.QMessageBox.information(self, 'SSH disconnection',
+    reply = QtWidgets.QMessageBox.information(self, 'SSH disconnection',
             "SSH connection has been ended.\n\nUser: " + USER + "\nHost: " + HOST)
 
-class SSH_ASK(QtGui.QWidget):
+class SSH_ASK(QtWidgets.QWidget):
   def __init__(self, USER, HOST):
     super(SSH_ASK, self).__init__()
-    reply = QtGui.QMessageBox.question(self, 'New SSH connection',
+    reply = QtWidgets.QMessageBox.question(self, 'New SSH connection',
             "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
-            + USER + "\nHost: " + HOST, QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+            + USER + "\nHost: " + HOST, QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-    if reply == QtGui.QMessageBox.Yes:
+    if reply == QtWidgets.QMessageBox.Yes:
       sys.exit(0)
     else:
       sys.exit(1)
 
-class ACCESS_DENIED(QtGui.QWidget):
+class ACCESS_DENIED(QtWidgets.QWidget):
   def __init__(self, USER):
     super(ACCESS_DENIED, self).__init__()
-    reply = QtGui.QMessageBox.information(self, 'ACCESS DENIED',
+    reply = QtWidgets.QMessageBox.information(self, 'ACCESS DENIED',
             "Login is not possible for user " + str(USER) + ".\nACCESS DENIED.")
 
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER")
     sys.exit(1)
 
-  app = QtGui.QApplication(sys.argv)
+  app = QtWidgets.QApplication(sys.argv)
 
   if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(sys.argv[2]))
   elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(sys.argv[2]))
