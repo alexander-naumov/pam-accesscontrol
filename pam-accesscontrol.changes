@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Dec 20 17:45:44 UTC 2017 - alexander_naumov@opensuse.org
+
+- Update to version 0.92:
+  * Notification windows - moving to PyQt5
+  * Adding login manager notification (access-denied-xorg)
+  * Notify openSUSE users about 'xhost' command
+
+-------------------------------------------------------------------
 Thu Jun 22 13:46:12 UTC 2017 - alexander_naumov@opensuse.org
 
 - initial (beta) release 0.90
