@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
     if [ -f "/etc/pam.d/$i" ]; then
       sed -i '/accesscontrol/d' "/etc/pam.d/$i"
@@ -9,10 +7,3 @@ for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
     fi
 done
 
-
-if [ $(arch) == 'i686' ]
-then
-    echo x86_64
-else
-    rm -rf /lib/security/pam_python.so
-fi

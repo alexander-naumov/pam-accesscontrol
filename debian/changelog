@@ -1,10 +1,16 @@
+pam-accesscontrol (0.92) unstable; urgency=low
+
+  * version 0.92
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 20 Dec 2017 15:00:07 +0200
+
 pam-accesscontrol (0.91) unstable; urgency=low
 
   * migration notification: from kdialog to Tk
 
  -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 22 Nov 2017 13:00:07 +0200
 
-pam-accesscontrol (0.90) stable; urgency=low
+pam-accesscontrol (0.90) unstable; urgency=low
 
   * Beta release
 

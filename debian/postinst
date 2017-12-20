@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# PAM configuration for SSH, login(1), sddm, xdm, gdm, kdm and lightdm
-
 for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
     if [ -f "/etc/pam.d/$i" ]; then
       echo "#PAM-accesscontrol configuration" >> "/etc/pam.d/$i"
@@ -10,12 +8,4 @@ for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
       echo \[DONE\] successfully configured: $i
     fi
 done
-
-
-if [ $(arch) == 'i686' ]
-then
-	cat /usr/share/pam-accesscontrol/pam_python32.so.base64 |base64 -d >/lib/security/pam_python.so
-else
-	echo x86_64
-fi
 
