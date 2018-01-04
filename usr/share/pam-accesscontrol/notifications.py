@@ -1,9 +1,9 @@
-#!/usr/bin/python -Es
+#!/usr/bin/python3 -Es
 # -*- coding: utf-8 -*-
 
 # This file is part of pam-accesscontrol.
 #
-#    Copyright (C) 2017  Alexander Naumov <alexander_naumov@opensuse.org>
+#    Copyright (C) 2017,2018  Alexander Naumov <alexander_naumov@opensuse.org>
 #
 #    PAM-ACCESSCONTROL is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import subprocess as sp
 
 def id_info(logtype, user_id):
   try:
-    return sp.Popen(['getent', 'passwd', user_id], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split(":")[0]
+    return sp.getoutput("getent passwd " +str(user_id)).split(":")[0]
   except:
     syslog.syslog(logtype + "no info from getent...")
     sys.exit(2)
@@ -48,7 +48,7 @@ def is_there(logtype, host, login, sessions):
 
 def show_session(logtype, n):
   try:
-    return sp.Popen(['loginctl', 'show-session', n], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+    return sp.getoutput("loginctl show-session " +str(n))
   except:
     syslog.syslog(logtype + "no info from loginctl... ")
     sys.exit(2)
@@ -61,7 +61,7 @@ def session_info(logtype):
   sessions = []
   LIST = []
   try:
-    info = sp.Popen(['loginctl'], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+    info = sp.getoutput('loginctl')
   except:
     syslog.syslog(logtype + "'loginctl' is not there?")
     sys.exit(2)
@@ -72,7 +72,7 @@ def session_info(logtype):
   for i in sessions:
     dic = {}
     dic['UID'] = i[1]
-    for s in show_session(logtype, i[0]).split("\n")[:-1]:
+    for s in show_session(logtype, i[0]).split("\n"):#[:-1]:
       if re.search("Id=",s):         dic['Id'] = s.split('=')[1]
       if re.search("Name=",s):       dic['Name'] = s.split('=')[1]
       if re.search("Display=",s):    dic['Display'] = s.split('=')[1]
@@ -87,7 +87,7 @@ def session_info(logtype):
 
 
 def get_xauthority(name):
-  for proc in sp.Popen(['pgrep', name], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n"):
+  for proc in sp.getoutput("pgrep " +str(name)).split("\n"):
     if len(proc)>0:
       try:
         int(proc)
@@ -141,7 +141,7 @@ if __name__ == '__main__':
                    ' && export XAUTHORITY=' + str(xauth) +
                    ' && /usr/share/pam-accesscontrol/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
-        print "0"
+        print ("0")
         sys.exit(0)
   else:
     n_conn = is_there(logtype, rhost, rname, sessions)
@@ -159,9 +159,7 @@ if __name__ == '__main__':
           sys.exit(2)
 
         if window == "ssh-info":
-          syslog.syslog("Yahoooo")
           if n_conn == 0:
-            syslog.syslog("Yahoooo")
             print (sp.call('export DISPLAY=' + str(i['Display']) +
                            ' && /usr/share/pam-accesscontrol/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' &',
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
@@ -169,14 +167,15 @@ if __name__ == '__main__':
         elif window == "ssh-ask":
           if n_conn == 1:
             active = 1
+            syslog.syslog(str(i['Display']))
             print (sp.call('export DISPLAY=' + str(i['Display']) +
                            ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
-            print "0"
+            print ("0")
             sys.exit(0)
 
   if not active and window != "ssh-info":
     syslog.syslog(logtype + "can't find owner of X session and ask him => access granted")
-    print "0"
+    print ("0")
     sys.exit(0)

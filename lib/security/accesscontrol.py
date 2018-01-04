@@ -3,20 +3,20 @@ import syslog, os, sys, re, time, datetime, glob
 
 # This file is part of pam-accesscontrol.
 #
-#    Copyright (C) 2017  Alexander Naumov <alexander_naumov@opensuse.org>
+#    Copyright (C) 2017,2018  Alexander Naumov <alexander_naumov@opensuse.org>
 #
-#    PAMAC is free software: you can redistribute it and/or modify
+#    PAM-ACCESSCONTROL is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    PAMAC is distributed in the hope that it will be useful,
+#    PAM-ACCESSCONTROL is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with PAMAC.  If not, see <http://www.gnu.org/licenses/>.
+#    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 
 def create_log(logtype, SERVICE, rhost, user, mode, msg):
@@ -266,10 +266,11 @@ def allow(SERVICE, logtype, host, login, DEFAULT, DEBUG):
     access.update(check(logtype, access, rule, ["OPEN", "ASK", "CLOSE", "NUMBER"], login, DEBUG))
 
   if DEBUG:
-    syslog.syslog("OPEN for  : "+str(access['OPEN']))
-    syslog.syslog("CLOSE for : "+str(access['CLOSE']))
-    syslog.syslog("ASK for   : "+str(access['ASK']))
-    syslog.syslog("NUMBER for: "+str(access['NUMBER']))
+    syslog.syslog(logtype + "----------------------------------------------")
+    syslog.syslog(logtype + "OPEN for  : "+str(access['OPEN']))
+    syslog.syslog(logtype + "CLOSE for : "+str(access['CLOSE']))
+    syslog.syslog(logtype + "ASK for   : "+str(access['ASK']))
+    syslog.syslog(logtype + "NUMBER for: "+str(access['NUMBER']))
 
   if len(access['NUMBER']) > 0:
     if not check_number_in_group(logtype, login, access['NUMBER'], DEBUG):
@@ -372,7 +373,7 @@ def pam_sm_close_session(pamh, flags, argv):
 
 
 def pam_sm_open_session(pamh, flags, argv):
-  logtype = "pam-accessconrol (" + str(pamh.service) + "): "
+  logtype = "pam-accesscontrol (" + str(pamh.service) + "): "
 
   if str(pamh.service) == "sshd":
     SERVICE = "SSH"

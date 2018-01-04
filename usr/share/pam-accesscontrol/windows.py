@@ -3,7 +3,7 @@
 
 # This file is part of pam-accesscontrol.
 #
-#    Copyright (C) 2017  Alexander Naumov <alexander_naumov@opensuse.org>
+#    Copyright (C) 2017,2018  Alexander Naumov <alexander_naumov@opensuse.org>
 #
 #    PAM-ACCESSCONTROL is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
