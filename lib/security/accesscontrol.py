@@ -1,5 +1,4 @@
-import subprocess as sp
-import syslog, os, sys, re, time, datetime, glob
+#!/usr/bin/python3 -Es
 
 # This file is part of pam-accesscontrol.
 #
@@ -18,6 +17,8 @@ import syslog, os, sys, re, time, datetime, glob
 #    You should have received a copy of the GNU General Public License
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
+import subprocess as sp
+import syslog, os, sys, re, time, datetime, glob
 
 def create_log(logtype, SERVICE, rhost, user, mode, msg):
   """
@@ -70,15 +71,26 @@ def ids(LIST):
 
 
 def not_upper_last_element(logtype, config):
+  """
+  Last rule's element is a username. We won't 'upper' it. Rest should be
+  'upper'ed to fix difference between capital and lowercase letters
+  (to be able to use both in the config file).
+  We also should be carefull with unnecessary spaces that generates excess
+  rule's options.
+  """
   conf = []
   for line in config:
     if len(line.split(" "))>1:
+      line = " ".join([x for x in line.split(" ") if len(x) > 0])
       line = " ".join([x for x in line.upper().split(" ")[:-1]]) + " " + line.split(" ")[-1]
     conf.append(line)
   return conf
 
 
 def configuration(logtype):
+  """
+  Reading rules list from the config files.
+  """
   conf_files = sorted(glob.glob('/etc/pam-accesscontrol.d/*.conf'))
   all_conf = []
   if conf_files:
@@ -89,7 +101,7 @@ def configuration(logtype):
           conf = not_upper_last_element(logtype, conf)
           all_conf = all_conf + conf
       except:
-        syslog.syslog(logtype + "can't open file: " + curfile)
+        syslog.syslog(logtype + "can't open file: " + cur_file)
   return all_conf
 
 
@@ -277,6 +289,7 @@ def allow(SERVICE, logtype, host, login, DEFAULT, DEBUG):
       if DEBUG: syslog.syslog(logtype + "'allow()' returns 'CLOSE', because of access[NUMBER]")
       return "CLOSE"
 
+  # Priority of CLOSE rule is higher than OPEN
   for i in access['OPEN']:
     if i in access['CLOSE']: access['OPEN'].remove(i)
 

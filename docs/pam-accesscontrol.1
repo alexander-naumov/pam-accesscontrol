@@ -1,19 +1,19 @@
-.TH PAMAC "1" "Juni 2017"
+.TH PAM-ACCESSCONTROL "1" "Jan 2018"
 .SH NAME
 PAM-accesscontrol \- PAM plugin to contol the access to host via SSH, SDDM and TTY.
 
 .SH DESCRIPTION
-PAMAC is writen in python and use PAM to control access to the system via Secure Shell, SDDM and
-login(1). It makes it possible to manages access for some group of users or, for example, depend
-on configuration can ask you (by using standard notification window) for confirmation about each
-new incoming SSH connection.
+PAM-ACCESSCONTROL is writen in python and use PAM to control access to the system via Secure
+Shell, sddm, kdm, gdm, lightdm, xdm and login(1). It makes it possible to manages access for
+some group of users or, for example, depend on configuration can ask you (by using standard
+notification window) for confirmation about each new incoming SSH connection.
                                     _________
-                     /= Yes/No ==>| KDialog |  <===>  local user
-                     |            |_________|
+                     /= Yes/No ==> |PyQt5 win|  <===>  local user
+                     |             |_________|
                ______|__________ 
-              |                 |                                      +-+-+-+     <----TTY---->
-    ----------|PAM-accesscontrol| <=============> pam_python.so  <===> + PAM +     <----KDM---->   Gast
-    |         |_________________|                                      +-+-+-+          SSH---->
+              |                 |                                      +-+-+-+     <--login(1)-->
+    ----------|PAM-accesscontrol| <=============> pam_python.so  <===> + PAM +     <---sddm----->   Gast
+    |         |_________________|                                      +-+-+-+          SSH----->
     |                   |      |                                         ||              |
     |                   |      |__________                               ||              |
     |                   |                 |                            _________         |
@@ -25,9 +25,6 @@ PAM-accesscontrol configuration happen by filling rules to the configuration fil
 PAM-accesscontrol uses Syslog for every login-events.
 
 .SH FILES
-.TP
-.I /lib/security/pam_python.so
-Via this PAM module happen communication between PAM itself and PAM python plugins.
 .TP
 .I /var/log/pam-accesscontrol-<JAHR>-<MONAT>.log
 Logfile
