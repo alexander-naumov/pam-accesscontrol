@@ -8,3 +8,12 @@ notification window) for each new incoming SSH connection.
 
 .. image:: https://de.opensuse.org/images/7/77/Paket-Download-Icon.png
    :target: https://software.opensuse.org//download.html?project=home%3AAlexander_Naumov%3Apam-accesscontrol&package=pam-accesscontrol
+
+Dependencies
+------------
+``openssh``, ``pam-python``, ``python3-qt5``
+
+Contributing
+------------
+You can submit or ask for improvements using github's Pull Requests or Issues.
+If you're sending a patch, please make sure the OBS is still able to build all packages.
