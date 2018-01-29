@@ -16,4 +16,7 @@ Dependencies
 Contributing
 ------------
 You can submit or ask for improvements using github's Pull Requests or Issues.
-If you're sending a patch, please make sure the OBS is still able to build all packages.
+
+If you're sending a patch, please make sure the `OBS`_ is still able to build all packages.
+
+.. _OBS: https://build.opensuse.org/package/show/home:Alexander_Naumov:pam-accesscontrol/pam-accesscontrol
