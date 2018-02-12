@@ -11,6 +11,8 @@ Package: pam-accesscontrol
 Pre-Depends: coreutils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), opessh-server, libpam-python:amd64
-Description: Configurable PAM plugin to control access to host.
- PAM plugin (writen in python) to contol access to host
- via SSH, KDM and TTY.
+Description: PAM-ACCESSCONTROL is writen in python and use PAM to control login access to
+ the host via SSH, sddm, slim, gdm, kdm, xdm, lightdm, and login(1).
+ It makes it possible to manages access for some group of users or, for example,
+ depend on configuration can ask user for confirmation about establishing each
+ new incoming SSH-connection.

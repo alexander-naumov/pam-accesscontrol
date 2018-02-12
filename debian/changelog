@@ -1,3 +1,16 @@
+pam-accesscontrol (0.93) unstable; urgency=low
+
+  * getting user info: using 'loginctl list-users' instead 'who'.
+  * delete SPEC file (there is a copy in OBS).
+  * support'slim' display manager.
+  * bugfix: concurrency problem by getting to many ask-windows.
+    If we get many ASK-windows (more than sets for NUMBER rule)
+    and don't confirm (or not confirm) every new connection right
+    away, number of logged users can be jump over NUMBER value.
+  * cosmetics
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 12 Jan 2017 17:11:07 +0200
+
 pam-accesscontrol (0.92) unstable; urgency=low
 
   * version 0.92

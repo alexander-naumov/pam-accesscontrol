@@ -1,11 +1,11 @@
 .TH PAM-ACCESSCONTROL "1" "Jan 2018"
 .SH NAME
 PAM-accesscontrol \- PAM plugin to contol access to host via SSH, tty/login(1) and such
-desktop logins like sddm, XDM, KDM, GDM and lightdm.
+desktop logins like sddm, xdm, kdm, gdm, slim and lightdm.
 
 .SH DESCRIPTION
 PAM-ACCESSCONTROL is writen in python and use PAM to control access to the system via Secure
-Shell, sddm, kdm, gdm, lightdm, xdm and login(1). It makes it possible to manages access for
+Shell, sddm, kdm, gdm, lightdm, xdm, slim and login(1). It makes it possible to manages access for
 some group of users or, for example, depend on configuration can ask you (by using standard
 notification window) for confirmation about each new incoming SSH connection.
                                     _________
@@ -19,7 +19,7 @@ notification window) for confirmation about each new incoming SSH connection.
     |                   |      |__________                               ||              |
     |                   |                 |                            _________         |
     |                   |                 |                           |  SSH    |        |
- Logfile        Configration file       Syslog        <============== | Server  |  <-----+
+ Logfile        Configration file       Syslog                        | Server  |  <-----+
                                                                       |_________|
 
 PAM-accesscontrol configuration happen by filling rules to the configuration file.
