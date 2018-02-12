@@ -19,4 +19,11 @@ You can submit or ask for improvements using github's Pull Requests or Issues.
 
 If you're sending a patch, please make sure the `OBS`_ is still be able to build all packages.
 
+Credits
+-------
+
+Copyright (c) 2017-2018 Alexander Naumov (alexander_naumov@opensuse.org).
+
+Licensed under GNU GPLv3 (see docs/LICENSE file).
+
 .. _OBS: https://build.opensuse.org/package/show/home:Alexander_Naumov:pam-accesscontrol/pam-accesscontrol
