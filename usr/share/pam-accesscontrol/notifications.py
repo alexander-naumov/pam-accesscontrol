@@ -22,14 +22,6 @@
 import syslog, sys, os, re
 import subprocess as sp
 
-def id_info(logtype, user_id):
-  try:
-    return sp.getoutput("getent passwd " +str(user_id)).split(":")[0]
-  except:
-    syslog.syslog(logtype + "no info from getent...")
-    sys.exit(2)
-
-
 def is_there(logtype, host, login, sessions):
   """
   It checks for other current SSH sessions of the user.
@@ -72,7 +64,7 @@ def session_info(logtype):
   for i in sessions:
     dic = {}
     dic['UID'] = i[1]
-    for s in show_session(logtype, i[0]).split("\n"):#[:-1]:
+    for s in show_session(logtype, i[0]).split("\n"):
       if re.search("Id=",s):         dic['Id'] = s.split('=')[1]
       if re.search("Name=",s):       dic['Name'] = s.split('=')[1]
       if re.search("Display=",s):    dic['Display'] = s.split('=')[1]
@@ -167,7 +159,6 @@ if __name__ == '__main__':
         elif window == "ssh-ask":
           if n_conn == 1:
             active = 1
-            syslog.syslog(str(i['Display']))
             print (sp.call('export DISPLAY=' + str(i['Display']) +
                            ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))

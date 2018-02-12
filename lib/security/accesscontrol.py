@@ -1,5 +1,3 @@
-#!/usr/bin/python3 -Es
-
 # This file is part of pam-accesscontrol.
 #
 #    Copyright (C) 2017,2018  Alexander Naumov <alexander_naumov@opensuse.org>
@@ -177,9 +175,9 @@ def number_of_logged_already(logtype, login, group, DEBUG):
   """
   item = 0
   USERS = []
-  users_in_system = sp.Popen(["/usr/bin/who"],stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n")
-  for users in users_in_system[:-1]:
-    USERS.append([user for user in users.split(" ") if len(user)>0][0])
+  users_in_system = sp.Popen(["/bin/loginctl", "list-users"],stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n")
+  for users in users_in_system[1:-3]:
+    USERS.append([user for user in users.split(" ") if len(user)>0][-1])
 
   if DEBUG: syslog.syslog(logtype + "USERS list: " + str(USERS))
   USERS.append(login)
@@ -239,7 +237,8 @@ def dialog(DEBUG, rhost, user, flavor):
   This calls UserInterface to get confirmations about creating new session.
   It also notified user about session termination.
   """
-  return sp.Popen(["/usr/share/pam-accesscontrol/notifications.py", str(DEBUG), str(rhost), str(user), flavor], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+  return sp.Popen(["/usr/share/pam-accesscontrol/notifications.py",
+      str(DEBUG), str(rhost), str(user), flavor], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
 
 
 def check(logtype, access, i, rules, login, DEBUG):
@@ -314,9 +313,7 @@ def main(SERVICE, logtype, pamh, flags, argv):
   pamh.authtok
   try:
     user = pamh.get_user()
-    #if DEBUG: syslog.syslog(logtype + "remote_user: "+ str(user))
     rhost = pamh.rhost
-    #if DEBUG: syslog.syslog(logtype + "remote_host: "+ str(rhost))
   except pamh.exception, e:
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return e.pam_result
@@ -325,16 +322,22 @@ def main(SERVICE, logtype, pamh, flags, argv):
   if DEBUG: syslog.syslog(logtype + "main got from allow: "+str(mode))
 
   if mode == "ASK":
+    if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
     ret = str(dialog(DEBUG, rhost, user, "ssh-ask"))
-    if DEBUG: syslog.syslog(logtype + "RET = " + str(ret))
+    if DEBUG: syslog.syslog(logtype + "[0->Yes; 1->No] RET = " + str(ret))
     try:
       if int(ret) == 0:
-        create_log(logtype, SERVICE, rhost, user, mode, "creating new session")
-        return pamh.PAM_SUCCESS
+        if allow(SERVICE, logtype, rhost, user, DEFAULT,"False") == "ASK":
+          create_log(logtype, SERVICE, rhost, user, mode, "creating new session")
+          return pamh.PAM_SUCCESS
+        else:
+          syslog.syslog(logtype + "Connection CAN NOT be established; because of NUMBER rule")
+          return pamh.PAM_AUTH_ERR
       else:
+        syslog.syslog(logtype + "Connection SHOULD NOT be established; because of X-session owner's decision")
         return pamh.PAM_AUTH_ERR
     except:
-      syslog.syslog(logtype + "something goes wrong... no return value from Tk window")
+      syslog.syslog(logtype + "something goes wrong... no return value from notification window")
       return pamh.PAM_AUTH_ERR
 
   elif mode == "CLOSE":
@@ -355,8 +358,9 @@ def main(SERVICE, logtype, pamh, flags, argv):
 
 
 def pam_sm_authenticate(pamh, flags, argv):
-  logtype = "pam-accesscontrol(" + str(pamh.service) + "): "
-  syslog.syslog(logtype + "authentication phase")
+  logtype = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
+  syslog.syslog(logtype + "==============================================")
+  syslog.syslog(logtype + "authentication")
   pamh.authtok
   try:
     syslog.syslog(logtype + "remote user: "+ str(pamh.get_user()))
@@ -365,32 +369,34 @@ def pam_sm_authenticate(pamh, flags, argv):
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
-  if str(pamh.service) in ["sddm","lightdm","xdm","kdm","gdm"]:
+  if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm","gdm"]:
     return main("XDM", logtype, pamh, flags, argv)
 
   return pamh.PAM_SUCCESS
 
 
 def pam_sm_close_session(pamh, flags, argv):
-  logtype = "pam-accesscontrol(" + str(pamh.service) + "): "
-  syslog.syslog(logtype + "close session")
+  logtype = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
+  syslog.syslog(logtype + "closing session")
 
   if not check_log(logtype, "SSH", str(pamh.rhost), str(pamh.get_user())):
     syslog.syslog(logtype + "no need to notify")
   else:
-    syslog.syslog(logtype + "SHOW ME WINDOW")
     DEFAULT, DEBUG = get_default(logtype)
+    if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
     dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "ssh-info")
 
   return pamh.PAM_SUCCESS
 
 
 def pam_sm_open_session(pamh, flags, argv):
-  logtype = "pam-accesscontrol (" + str(pamh.service) + "): "
+  logtype = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
+  syslog.syslog(logtype + "==============================================")
+  syslog.syslog(logtype + "open new session")
 
   if str(pamh.service) == "sshd":
     SERVICE = "SSH"
-  elif str(pamh.service) == "sddm":
+  elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm","gdm"]:
     # We check XDM's rules on the 'auth' step.
     # (because we want to show error message (in CLOSE case)
     # and it's possible only BEFORE KDE-session starts)
