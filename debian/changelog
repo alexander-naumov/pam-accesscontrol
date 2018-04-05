@@ -1,3 +1,9 @@
+pam-accesscontrol (0.94) unstable; urgency=low
+
+  * bugfix: second ssh-session with ASK access option is always open
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 05 Apr 2018 11:11:07 +0200
+
 pam-accesscontrol (0.93) unstable; urgency=low
 
   * getting user info: using 'loginctl list-users' instead 'who'.
@@ -9,7 +15,7 @@ pam-accesscontrol (0.93) unstable; urgency=low
     away, number of logged users can be jump over NUMBER value.
   * cosmetics
 
- -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 12 Jan 2017 17:11:07 +0200
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Wed, 12 Jan 2018 17:11:07 +0200
 
 pam-accesscontrol (0.92) unstable; urgency=low
 

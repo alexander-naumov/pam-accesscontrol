@@ -78,6 +78,20 @@ def session_info(logtype):
   return LIST
 
 
+def ask_window_is_there(host, login):
+  """
+  'loginctl list-sessions' shows new session for user X before user can answer via pam-accesscontrol's ask-window.
+  Until now I didn't found some better solution then just to check for this window (by parsing for all processes).
+  FIXME: looking for some better solution...
+  """
+  pattern = "/usr/bin/python3 -Es /usr/share/pam-accesscontrol/windows.py ssh-ask " + host + " " + login
+  for i in sp.getoutput("ps aux").split("\n"):
+      proc = re.search(pattern, i)
+      if proc is not None:
+          return True
+  return False
+
+
 def get_xauthority(name):
   for proc in sp.getoutput("pgrep " +str(name)).split("\n"):
     if len(proc)>0:
@@ -149,6 +163,10 @@ if __name__ == '__main__':
         except os.error:
           syslog.syslog(logtype + "can't change user")
           sys.exit(2)
+
+        if ask_window_is_there(str(rhost), str(rname)):
+          print ("1")
+          sys.exit(1)
 
         if window == "ssh-info":
           if n_conn == 0:

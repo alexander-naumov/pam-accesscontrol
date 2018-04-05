@@ -1,9 +1,8 @@
 #!/bin/bash
 
-for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
+for i in "sddm" "slim" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
     if [ -f "/etc/pam.d/$i" ]; then
       sed -i '/accesscontrol/d' "/etc/pam.d/$i"
-      sed -i '/PAMAC/d' "/etc/pam.d/$i"
     fi
 done
 

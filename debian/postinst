@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in "sddm" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
+for i in "sddm" "slim" "login" "sshd" "lightdm" "xdm" "kdm" "gdm"; do
     if [ -f "/etc/pam.d/$i" ]; then
       echo "#PAM-accesscontrol configuration" >> "/etc/pam.d/$i"
       echo "auth        required     pam_python.so accesscontrol.py" >> "/etc/pam.d/$i"
