@@ -53,8 +53,13 @@ if __name__ == '__main__':
     print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER")
     sys.exit(1)
 
+  if sys.argv[2] == "::1":
+    HOST = "localhost"
+  else:
+    HOST = sys.argv[2]
+
   app = QtWidgets.QApplication(sys.argv)
 
-  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(sys.argv[2]))
-  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(sys.argv[2]))
+  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(HOST))
+  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(HOST))
   elif sys.argv[1] == "access-denied-xorg": ACCESS_DENIED(str(sys.argv[3]))
