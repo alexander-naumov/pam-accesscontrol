@@ -174,7 +174,7 @@ XDM NUMBER GROUP admin:1
 .RE
 .PP
 
-\fIConffiguration\fR 2:
+\fIConfiguration\fR 2:
 .PP
 .RS 5
 A login via XDM. B can to login only via SSH and only when A confirm it. No XDM or TTY
@@ -217,16 +217,15 @@ DEFAULT:OPEN
 \fIConfiguraion\fR 4:
 .PP
 .RS 5
-Everyone can to login XDM and TTY, but nobody via SSH.
+Everyone can to login via XDM and TTY, but nobody via SSH.
 .PP
 .RS 7
 DEFAULT:OPEN
 .br
-SSH CLOSE GROUP linux-users,linux,linux-user
-.RE
+SSH CLOSE GROUP ALL
 .RE
 .PP
-
+Group "ALL" means everyone. Use capital letters: "ALL", not "all" or "All"!
 
 \fIConfiguraion\fR 5:
 .PP
@@ -240,7 +239,7 @@ to use passwords or passphase for ssh-keys, i.e. standart SSH auth mechanism).
 .RS 7
 DEFAULT:OPEN
 .br
-SSH ASK GROUP linux-users,linux,linux-user
+SSH ASK GROUP ALL
 .RE
 .RE
 .PP

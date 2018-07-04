@@ -185,7 +185,7 @@ def number_of_logged_already(logtype, login, group, DEBUG):
   if DEBUG: syslog.syslog(logtype + "USERS list after compression: " + str(USERS))
 
   for U in USERS:
-    if U in get_users_from_group(group):
+    if U in get_users_from_group(group, login):
       item = item+1
   if DEBUG: syslog.syslog(logtype + "number of users (group '" + str(group) + "') after new connection: " + str(item))
   return item
@@ -200,7 +200,7 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
     if len(L.split(":")) != 2:
       if DEBUG: syslog.syslog(logtype + "wrong defined rule NUMBER '" + str(L) + "'... skipping")
     else:
-      if login in get_users_from_group(L.split(":")[0]):
+      if login in get_users_from_group(L.split(":")[0], login):
         try:
           if int(L.split(":")[1]) < int(number_of_logged_already(logtype, login, L.split(":")[0], DEBUG)):
             if DEBUG: syslog.syslog(logtype + "no more users allowed for group '" + str(L.split(":")[0]) + "'")
@@ -222,7 +222,8 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
   else:          return False
 
 
-def get_users_from_group(group):
+def get_users_from_group(group, login):
+  if group == "ALL": return [str(login)]
   try:
     out = sp.Popen(["/usr/bin/getent", "group", group], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n")[0]
     out = out.split(":")[-1]
@@ -262,7 +263,7 @@ def check(logtype, access, i, rules, login, DEBUG):
         else:
           if DEBUG: syslog.syslog(logtype + "I'm going to look at GROUP list: " +str(i['OPTION'].split(" ")[1]))
           for group in i['LIST']:
-            access[r] = access[r] + get_users_from_group(group)
+            access[r] = access[r] + get_users_from_group(group, login)
   return access
 
 
