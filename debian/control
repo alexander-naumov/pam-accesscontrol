@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 7.0.50~),
 Package: pam-accesscontrol
 Pre-Depends: coreutils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), opessh-server, libpam-python
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), openssh-server, libpam-python
 Description: PAM-ACCESSCONTROL is writen in python and use PAM to control login access to
  the host via SSH, sddm, slim, gdm, kdm, xdm, lightdm, and login(1).
  It makes it possible to manages access for some group of users or, for example,
