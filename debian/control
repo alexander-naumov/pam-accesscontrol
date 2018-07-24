@@ -3,9 +3,7 @@ Section: misc
 Standards-Version: 3.9.3
 Priority: extra
 Maintainer: Alexander Naumov <alexander_naumov@opensuse.org>
-Build-Depends: debhelper (>= 7.0.50~),
- config-package-dev
- cdbs
+Build-Depends: debhelper (>= 7.0.50~), config-package-dev, cdbs
 
 Package: pam-accesscontrol
 Pre-Depends: coreutils
