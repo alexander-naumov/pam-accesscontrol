@@ -103,6 +103,7 @@ def get_xauthority(name):
             buf = buf.split("XAUTHORITY")[-1]
             buf = buf.split("}")[0]
             buf = buf[1:] + "}"
+            if name == "lightdm": buf = buf[:-2]
             return str(buf)
         except:
           syslog.syslog(logtype + "can't open file /proc/" + str(proc) + "/environ ...")
