@@ -49,6 +49,7 @@ def check_log(logtype, SERVICE, rhost, user):
     fd.close()
   except:
     syslog.syslog(logtype + "can't open/read logfile " + FILE)
+    return 0
 
   for l in logfile:
     if len(l) > 0:
