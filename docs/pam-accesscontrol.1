@@ -1,25 +1,25 @@
-.TH PAM-ACCESSCONTROL "1" "Jan 2018"
+.TH PAM-ACCESSCONTROL "1" "Aug 2018"
 .SH NAME
 PAM-accesscontrol \- PAM plugin to contol access to host via SSH, tty/login(1) and such
-desktop logins like sddm, xdm, kdm, gdm, slim and lightdm.
+some display managers.
 
 .SH DESCRIPTION
-PAM-ACCESSCONTROL is writen in python and use PAM to control access to the system via Secure
-Shell, sddm, kdm, gdm, lightdm, xdm, slim and login(1). It makes it possible to manages access for
+PAM-ACCESSCONTROL is writen in python and use PAM to control access to host via Secure
+Shell, sddm, kdm, lightdm, xdm, slim and login(1). It makes it possible to manages access for
 some group of users or, for example, depend on configuration can ask you (by using standard
 notification window) for confirmation about each new incoming SSH connection.
                                     _________
-                     /= Yes/No ==> |PyQt5 win|  <===>  local user
+                     /= Yes/No ==> |PyQt5 win|
                      |             |_________|
                ______|__________ 
-              |                 |                                      +-+-+-+     <--login(1)-->
-    ----------|PAM-accesscontrol| <=============> pam_python.so  <===> + PAM +     <---sddm----->   Gast
-    |         |_________________|                                      +-+-+-+          SSH----->
-    |                   |      |                                         ||              |
-    |                   |      |__________                               ||              |
-    |                   |                 |                            _________         |
-    |                   |                 |                           |  SSH    |        |
- Logfile        Configration file       Syslog                        | Server  |  <-----+
+              |                 |                                      +-+-+-+     <--login(1)->
+    ----------|PAM-accesscontrol| <=============> pam_python.so  <===> + PAM +     <--Display--> Gast
+    |         |_________________|                                      +-+-+-+         SSH----->
+    |                   |      |                                         ||             |
+    |                   |      |__________                               ||             |
+    |                   |                 |                            _________        |
+    |                   |                 |                           |  SSH    |       |
+ Logfile        Configration file       Syslog                        | Server  |  <----+
                                                                       |_________|
 
 PAM-accesscontrol configuration happen by filling rules to the configuration file.
@@ -36,9 +36,14 @@ Configfile
 
 .SH AUTOR
 Writen by Alexander Naumov <alexander_naumov@opensuse.org>
+.PP
+GitHub: https://github.com/alexander-naumov/pam-accesscontrol
 
 .SH "SEE ALSO"
-.BR pam (7),
+.BR pam (3),
+.BR pam (8),
+.BR tty (4),
+.BR login (1),
 .BR sddm (1),
 .BR sshd (8),
 .BR pam-accesscontrol.d (5)
