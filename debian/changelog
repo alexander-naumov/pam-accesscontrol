@@ -1,3 +1,12 @@
+pam-accesscontrol (0.95) unstable; urgency=low
+
+  * bugfix: XAUTHORITY for lightdm
+  * some documentation cosmetics
+  * remove gdm (not supported anymore)
+  * add new configuration option "ALL"
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Tue, 31 Jul 2018 18:15:07 +0200
+
 pam-accesscontrol (0.94) unstable; urgency=low
 
   * bugfix: second ssh-session with ASK access option is always open
