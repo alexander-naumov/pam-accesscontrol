@@ -371,7 +371,7 @@ def pam_sm_authenticate(pamh, flags, argv):
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
-  if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm","gdm"]:
+  if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     return main("XDM", logtype, pamh, flags, argv)
 
   return pamh.PAM_SUCCESS
@@ -398,7 +398,7 @@ def pam_sm_open_session(pamh, flags, argv):
 
   if str(pamh.service) == "sshd":
     SERVICE = "SSH"
-  elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm","gdm"]:
+  elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     # We check XDM's rules on the 'auth' step.
     # (because we want to show error message (in CLOSE case)
     # and it's possible only BEFORE KDE-session starts)
