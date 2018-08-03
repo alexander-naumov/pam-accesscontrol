@@ -75,6 +75,12 @@ def session_info(logtype):
       if re.search("State=",s):      dic['State'] = s.split('=')[1]
       if re.search("Class=",s):      dic['Class'] = s.split('=')[1]
     LIST.append(dic)
+
+  for L in LIST:
+    if 'Display' not in L:
+      syslog.syslog(logtype + "there is no Display info: "+ str(L))
+      L['Display'] = ":0"
+
   return LIST
 
 
