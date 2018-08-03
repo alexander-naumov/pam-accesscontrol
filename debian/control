@@ -9,8 +9,4 @@ Package: pam-accesscontrol
 Pre-Depends: coreutils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), openssh-server, libpam-python
-Description: PAM-ACCESSCONTROL is writen in python and use PAM to control login access to
- the host via SSH, sddm, slim, kdm, xdm, lightdm, and login(1).
- It makes it possible to manages access for some group of users or, for example,
- depend on configuration can ask user for confirmation about establishing each
- new incoming SSH-connection.
+Description: PAM-based access control system
