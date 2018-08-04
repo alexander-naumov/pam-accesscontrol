@@ -18,6 +18,8 @@
 import subprocess as sp
 import syslog, os, sys, re, time, datetime, glob
 
+sshkey="unknown"
+
 def create_log(logtype, SERVICE, rhost, user, mode, msg):
   """
   It creates new entry in the logfile. The format of log-entry is:
@@ -234,13 +236,13 @@ def get_users_from_group(group, login):
     sys.exit(2)
 
 
-def dialog(DEBUG, rhost, user, flavor):
+def dialog(DEBUG, rhost, user, flavor, SERVICE):
   """
   This calls UserInterface to get confirmations about creating new session.
   It also notified user about session termination.
   """
   return sp.Popen(["/usr/share/pam-accesscontrol/notifications.py",
-      str(DEBUG), str(rhost), str(user), flavor], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
+      str(DEBUG), str(rhost), str(user), flavor, SERVICE], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
 
 
 def check(logtype, access, i, rules, login, DEBUG):
@@ -294,12 +296,12 @@ def allow(SERVICE, logtype, host, login, DEFAULT, DEBUG):
   for i in access['OPEN']:
     if i in access['CLOSE']: access['OPEN'].remove(i)
 
-  if login in access['CLOSE']:  return "CLOSE"
+  if login in access['CLOSE']:    return "CLOSE"
   elif login in access['ASK']:
-    if SERVICE == "SSH":        return "ASK"
-    else:                       return "CLOSE"
-  elif login in access['OPEN']: return "OPEN"
-  else:                         return DEFAULT
+    if SERVICE in ["SSH", "KEY"]: return "ASK"
+    else:                         return "CLOSE"
+  elif login in access['OPEN']:   return "OPEN"
+  else:                           return DEFAULT
 
 
 def main(SERVICE, logtype, pamh, flags, argv):
@@ -325,7 +327,7 @@ def main(SERVICE, logtype, pamh, flags, argv):
 
   if mode == "ASK":
     if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
-    ret = str(dialog(DEBUG, rhost, user, "ssh-ask"))
+    ret = str(dialog(DEBUG, rhost, user, "ssh-ask", SERVICE))
     if DEBUG: syslog.syslog(logtype + "[0->Yes; 1->No] RET = " + str(ret))
     try:
       if int(ret) == 0:
@@ -373,6 +375,9 @@ def pam_sm_authenticate(pamh, flags, argv):
 
   if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     return main("XDM", logtype, pamh, flags, argv)
+  if str(pamh.service) == "sshd":
+    global sshkey
+    sshkey = "password"
 
   return pamh.PAM_SUCCESS
 
@@ -386,7 +391,7 @@ def pam_sm_close_session(pamh, flags, argv):
   else:
     DEFAULT, DEBUG = get_default(logtype)
     if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
-    dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "ssh-info")
+    dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "ssh-info", "SSH")
 
   return pamh.PAM_SUCCESS
 
@@ -397,7 +402,13 @@ def pam_sm_open_session(pamh, flags, argv):
   syslog.syslog(logtype + "open new session")
 
   if str(pamh.service) == "sshd":
-    SERVICE = "SSH"
+    global sshkey
+    if sshkey == "unknown":
+      sshkey  = "sshkey"
+      SERVICE = "KEY"
+    else:
+      SERVICE = "SSH"
+
   elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     # We check XDM's rules on the 'auth' step.
     # (because we want to show error message (in CLOSE case)

@@ -118,8 +118,8 @@ def get_xauthority(name):
 
 
 if __name__ == '__main__':
-  if (len(sys.argv) != 5):
-    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ssh-ask | ssh-info | access-denied-xorg]")
+  if (len(sys.argv) != 6):
+    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ssh-ask | ssh-info | access-denied-xorg] [SSH | KEY]")
     sys.exit(1)
 
   DEBUG = False
@@ -127,15 +127,17 @@ if __name__ == '__main__':
   if sys.argv[2]: rhost  = sys.argv[2]
   if sys.argv[3]: rname  = sys.argv[3]
   if sys.argv[4]: window = sys.argv[4]
+  if sys.argv[5]: auth   = sys.argv[5]
 
   if window == "access-denied-xorg": logtype = "pam-accesscontrol(Xorg): "
   else:                              logtype = "pam-accesscontrol(sshd): "
 
   if DEBUG:
-    syslog.syslog(logtype + "DEBUG  = " + str(DEBUG))
-    syslog.syslog(logtype + "HOST   = " + str(rhost))
-    syslog.syslog(logtype + "NAME   = " + str(rname))
-    syslog.syslog(logtype + "WINDOW = " + str(window))
+    syslog.syslog(logtype + "DEBUG   = " + str(DEBUG))
+    syslog.syslog(logtype + "HOST    = " + str(rhost))
+    syslog.syslog(logtype + "NAME    = " + str(rname))
+    syslog.syslog(logtype + "WINDOW  = " + str(window))
+    syslog.syslog(logtype + "SSHAUTH = " + str(auth))
 
   sessions = session_info(logtype)
   if not sessions:
@@ -178,14 +180,14 @@ if __name__ == '__main__':
         if window == "ssh-info":
           if n_conn == 0:
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' &',
+                           ' && /usr/share/pam-accesscontrol/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
         elif window == "ssh-ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname),
+                           ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth),
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print ("0")

@@ -23,17 +23,21 @@ import syslog, os, sys
 from PyQt5 import QtGui, QtWidgets
 
 class SSH_INFO(QtWidgets.QWidget):
-  def __init__(self, USER, HOST):
+  def __init__(self, USER, HOST, AUTH):
     super(SSH_INFO, self).__init__()
     reply = QtWidgets.QMessageBox.information(self, 'SSH disconnection',
             "SSH connection has been ended.\n\nUser: " + USER + "\nHost: " + HOST)
 
 class SSH_ASK(QtWidgets.QWidget):
-  def __init__(self, USER, HOST):
+  def __init__(self, USER, HOST, AUTH):
     super(SSH_ASK, self).__init__()
+    if AUTH == "KEY": AUTH = "public-key authentification"
+    else:             AUTH = "password authentification"
+
     reply = QtWidgets.QMessageBox.question(self, 'New SSH connection',
             "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
-            + USER + "\nHost: " + HOST, QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            + USER + "\nHost: " + HOST + "\n\nAuthentification: "+ AUTH,
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
     if reply == QtWidgets.QMessageBox.Yes:
       sys.exit(0)
@@ -49,8 +53,8 @@ class ACCESS_DENIED(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-  if (len(sys.argv) != 4) or sys.argv[1] not in ["ssh-ask","ssh-info","access-denied-xorg"]:
-    print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER")
+  if (len(sys.argv) != 5) or sys.argv[1] not in ["ssh-ask","ssh-info","access-denied-xorg"]:
+    print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER [SSH | KEY]")
     sys.exit(1)
 
   if sys.argv[2] == "::1":
@@ -60,6 +64,6 @@ if __name__ == '__main__':
 
   app = QtWidgets.QApplication(sys.argv)
 
-  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(HOST))
-  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(HOST))
+  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
+  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
   elif sys.argv[1] == "access-denied-xorg": ACCESS_DENIED(str(sys.argv[3]))
