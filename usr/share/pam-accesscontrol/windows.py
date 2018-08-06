@@ -31,12 +31,12 @@ class SSH_INFO(QtWidgets.QWidget):
 class SSH_ASK(QtWidgets.QWidget):
   def __init__(self, USER, HOST, AUTH):
     super(SSH_ASK, self).__init__()
-    if AUTH == "KEY": AUTH = "public-key authentification"
-    else:             AUTH = "password authentification"
+    if AUTH == "KEY": AUTH = "public-key authentication"
+    else:             AUTH = "password authentication"
 
     reply = QtWidgets.QMessageBox.question(self, 'New SSH connection',
             "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
-            + USER + "\nHost: " + HOST + "\n\nAuthentification: "+ AUTH,
+            + USER + "\nHost: " + HOST + "\n\nAuthentication: "+ AUTH,
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
     if reply == QtWidgets.QMessageBox.Yes:
