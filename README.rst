@@ -3,9 +3,10 @@
 =========================================
 PAM-ACCESSCONTROL is a pam-module writen in python3 for control access to host via SSH,
 sddm, slim, kdm, lightdm, xdm and tty/login(1). It makes it possible to manages access
-for some LDAP-groups of users by just adding one line to the config file or, for example,
-can notify/ask you (by using PyQt5 notification window) about establisching each new incoming
-SSH connection. It recognizes SSH password and public key authentication.
+for some user or, for example, LDAP-groups of users by adding just one line to the config
+file. It's also possbile to get notification about establisching each new incoming
+SSH connection and allow or not allow it (by using PyQt5 notification window).
+It recognizes SSH password and public key authentication.
 
 .. image:: https://de.opensuse.org/images/7/77/Paket-Download-Icon.png
    :target: https://software.opensuse.org//download.html?project=home%3AAlexander_Naumov%3Apam-accesscontrol&package=pam-accesscontrol
