@@ -1,13 +1,13 @@
 .TH PAM-ACCESSCONTROL "1" "Aug 2018"
 .SH NAME
-PAM-accesscontrol \- PAM plugin to contol access to host via SSH, tty/login(1) and some
+PAM-accesscontrol \- PAM module to contol access to host via SSH, tty/login(1) and some
 display managers.
 
 .SH DESCRIPTION
-PAM-ACCESSCONTROL is writen in python3 and uses PAM to control access to host via Secure
+PAM-ACCESSCONTROL is a pam-module writen in python3 to control access to host via Secure
 Shell, sddm, kdm, lightdm, xdm, slim and login(1). It makes it possible to manages access for
 some group of users or, for example, depend on configuration can ask you (by using standard
-notification window) for confirmation about each new incoming SSH connection.
+notification window) for confirmation about establisching each new incoming SSH connection.
                                     _________
                      /= Yes/No ==> |PyQt5 win|
                      |             |_________|
@@ -34,7 +34,7 @@ Logfile
 Configfile
 .PP
 
-.SH AUTOR
+.SH AUTHOR
 Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 .PP
 GitHub: https://github.com/alexander-naumov/pam-accesscontrol

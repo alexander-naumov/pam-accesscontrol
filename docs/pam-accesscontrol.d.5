@@ -12,12 +12,14 @@ contain list of rules. Each rule has to include exactly 4 fields separated by sp
 .RS 3
 SERVICE
 .RS 4
-defines type of \fIPAM\fR service that should be controled. It could be one of 3 types:
-\fISSH\fR, \fIXDM\fR and \fITTY\fR.
+defines type of \fIPAM\fR service that should be managed. There are 4 types:
+\fISSH\fR, \fIKEY\fR, \fIXDM\fR and \fITTY\fR.
 .PP
-\fISSH\fR manages incoming SSH connections (from local- and remote hosts). \fIXDM\fR
-manages PAM configuration using by desktop managers. \fITTY\fR is responsible for
-configuration of the login(1) programs running on the /dev/tty devices.
+\fISSH\fR manages incoming SSH connections (from local- and remote hosts) by using password
+authentication. \fIKEY\fR is similar to SSH, but it managed only the ssh-key authentication
+based connections. Very importand to understand: SSH does nothing with ssh-key authentication
+SSH-sessions and KEY does not managed password authentications. \fIXDM\fR manages desktop
+managers. \fITTY\fR is responsible for login(1) configuration running on the /dev/tty devices.
 .RE
 
 .PP
@@ -162,7 +164,7 @@ User C: member of groups "linux-users" and "lpadmin"
 .PP
 .RS 5
 Member of group "admin" login via XDM. For all next users (group name is not important)
-access via SSH, XDM and TTY is closed, i.e. login is unpossible.
+access via SSH, XDM and TTY should be closed.
 .PP
 .RS 7
 DEFAULT:CLOSE
@@ -177,9 +179,11 @@ XDM NUMBER GROUP admin:1
 \fIConfiguration\fR 2:
 .PP
 .RS 5
-A login via XDM. B can to login only via SSH and only when A confirm it. No XDM or TTY
-for B should be possible. If A allows access for B, B can create more then one
-SSH-connection. E and F can not to login while A and B are logged already.
+User A login via XDM. User B can to login only via SSH (should be accept ssh-key
+authentication only) and only when user A confirm it. No XDM or TTY for user B
+should be possible. If user A allows access for user B, user B can create more then
+just one SSH-connections. For all other users should not be possible to login
+while users A and B are logged already.
 .PP
 .RS 7
 DEFAULT:CLOSE
@@ -188,13 +192,13 @@ XDM OPEN GROUP linux-users
 .br
 XDM NUMBER GROUP linux-users:1
 .br
-SSH ASK GROUP admin
+KEY ASK GROUP admin
 .br
-SSH NUMBER GROUP admin:1
+KEY NUMBER GROUP admin:1
 .RE
 .PP
-That will work for B only if A confirm establishing of the new SSH-connection.
-In case you want to allow access for B without asking, change option \fIASK\fR
+That will work for user B only if user A confirms establishing of the new SSH-session.
+In case you want to allow access for user B without confirmation, change option \fIASK\fR
 to \fIOPEN\fR:
 .PP
 .RS 7
@@ -223,6 +227,9 @@ Everyone can to login via XDM and TTY, but nobody via SSH.
 DEFAULT:OPEN
 .br
 SSH CLOSE GROUP ALL
+.br
+KEY CLOSE GROUP ALL
+.RE
 .RE
 .PP
 Group "ALL" means everyone. Use capital letters: "ALL", not "all" or "All"!
@@ -231,15 +238,20 @@ Group "ALL" means everyone. Use capital letters: "ALL", not "all" or "All"!
 .PP
 .RS 5
 Everyone can to login via XDM and TTY. Everyone can to login via SSH, but only with
-confirmation (of X session owner). Please keep in mind, if there is no active X session
-(nobody can to confirm the creating of new SSH session), pam-accesscontrol interprets an
-ASK rule as OPEN. In other words, SSH access will be open (remote users will still need
-to use passwords or passphase for ssh-keys, i.e. standart SSH auth mechanism).
+confirmation (of X session owner).
+.PP
+Please keep in mind, if there is no active X session (in this case nobody will be able
+to confirm the opening/creating of the new SSH-session (looked X session is an active
+session)), pam-accesscontrol interprets an ASK rule as OPEN. In other words, SSH access
+will be open (remote users still will need to use passwords or passphrase for its
+ssh-keys, i.e. standart SSH auth mechanism).
 .PP
 .RS 7
 DEFAULT:OPEN
 .br
 SSH ASK GROUP ALL
+.br
+KEY ASK GROUP ALL
 .RE
 .RE
 .PP
@@ -253,11 +265,16 @@ Only members of group 'admin' can to login via SSH (without confirmation).
 DEFAULT:CLOSE
 .br
 SSH OPEN GROUP admin
+.br
+KEY OPEN GROUP admin
 .RE
 .RE
 .PP
 
-.SH AUTOR
+.SH BUGS
+There are some problems at the moment with display manager "ACCESS DENIED" messages.
+
+.SH AUTHOR
 Writen by Alexander Naumov <alexander_naumov@opensuse.org>
 .PP
 GitHub: https://github.com/alexander-naumov/pam-accesscontrol
