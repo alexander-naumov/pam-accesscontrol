@@ -64,6 +64,7 @@ def session_info(logtype):
   for i in sessions:
     dic = {}
     dic['UID'] = i[1]
+    dic['Display'] = ":0"
     for s in show_session(logtype, i[0]).split("\n"):
       if re.search("Id=",s):         dic['Id'] = s.split('=')[1]
       if re.search("Name=",s):       dic['Name'] = s.split('=')[1]
@@ -75,12 +76,6 @@ def session_info(logtype):
       if re.search("State=",s):      dic['State'] = s.split('=')[1]
       if re.search("Class=",s):      dic['Class'] = s.split('=')[1]
     LIST.append(dic)
-
-  for L in LIST:
-    if 'Display' not in L:
-      syslog.syslog(logtype + "there is no Display info: "+ str(L))
-      L['Display'] = ":0"
-
   return LIST
 
 
@@ -166,7 +161,7 @@ if __name__ == '__main__':
   active = 0
   for i in sessions:
     if 'Remote' in i and 'Type' in i and 'UID' in i:
-      if i['Remote'] == 'no' and i['Type'] == 'x11' and i['State'] == 'active' and i['Name'] != 'sddm' and 'Display' in i:
+      if i['Remote'] == 'no' and i['Type'] == 'x11' and i['State'] == 'active' and i['Name'] != 'sddm':
         try:
           os.setuid(int(i['UID']))
         except os.error:
