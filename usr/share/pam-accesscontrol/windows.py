@@ -54,7 +54,7 @@ class ACCESS_DENIED(QtWidgets.QWidget):
 
 if __name__ == '__main__':
   if (len(sys.argv) != 5) or sys.argv[1] not in ["ssh-ask","ssh-info","access-denied-xorg"]:
-    print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER [SSH | KEY]")
+    print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER [SSH | KEY | XDM]")
     sys.exit(1)
 
   if sys.argv[2] == "::1":

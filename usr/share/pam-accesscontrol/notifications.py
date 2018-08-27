@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
         print (sp.call('export DISPLAY=' + str(i['Display']) +
                    ' && export XAUTHORITY=' + str(xauth) +
-                   ' && /usr/share/pam-accesscontrol/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' &',
+                   ' && /usr/share/pam-accesscontrol/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
         print ("0")
         sys.exit(0)

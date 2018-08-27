@@ -348,7 +348,7 @@ def main(SERVICE, logtype, pamh, flags, argv):
     create_log(logtype, SERVICE, rhost, user, mode, "access denied")
     syslog.syslog(logtype + "access denied")
     if SERVICE == "XDM":
-      dialog(DEBUG, rhost, user, "access-denied-xorg")
+      dialog(DEBUG, rhost, user, "access-denied-xorg", SERVICE)
     return pamh.PAM_AUTH_ERR
 
   elif mode == "OPEN":
