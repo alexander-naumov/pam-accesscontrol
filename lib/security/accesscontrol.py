@@ -247,7 +247,7 @@ def dialog(DEBUG, rhost, user, flavor, SERVICE):
 
 def check(logtype, access, i, rules, login, DEBUG):
   """
-  It get list of rules, parses these and fills 'access' dictonary with 4
+  It gets list of rules, parses it and fills the 'access' dictonary with 4
   lists: CLOSE, ASK, OPEN and NUMBER.
   """
   for r in rules:
