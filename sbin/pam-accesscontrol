@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# This file is part of pam-accesscontrol.
+#
+#    Copyright (C) 2017,2018  Alexander Naumov <alexander_naumov@opensuse.org>
+#
+#    PAM-ACCESSCONTROL is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    PAM-ACCESSCONTROL is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
+
+import subprocess as sp
+import os, sys, re, glob, shutil, platform
+
+VERSION = "v0.96"
+PATH_PAM = "/etc/pam.d/"
+
+
+def usage():
+  print ("pam-acesscontrol " + VERSION)
+  print ("usage:")
+  print ("pam-accesscontrol show-config")
+  print ("pam-accesscontrol show-info")
+  print ("pam-accesscontrol list")
+  print ("pam-accesscontrol configure")
+  print ("pam-accesscontrol make-clean")
+
+  print ("Documentation: man pages pam-accesscontrol and pam-accesscontrol.conf")
+  sys.exit()
+
+
+def distribution():
+  if platform.linux_distribution()[0] in ['Ubuntu', 'Debian']:
+    return 'DEB'
+  if platform.linux_distribution()[0] in ['CentOS Linux', 'openSUSE', 'SuSE']:
+    return 'RPM'
+  else:
+    print ("error: can't get this information...")
+    sys.exit(2)  
+
+
+def show_info(pam):
+  for p in pam:
+    if p in pam_list("relative"):
+      if distribution() == "DEB":
+        CMD = "dpkg-query -W -f='${Description}\n' $(dpkg -S /etc/pam.d/" + p + " | cut -d':' -f1)"
+      if distribution() == "RPM":
+        CMD = "rpm -q --queryformat '%{Description}\n' $(rpm -qf /etc/pam.d/" + p + ")"
+      print ("-----------------------------------------------------------------------")
+      print ("Information about " + PATH_PAM + p + ": ")
+      print (sp.getoutput(CMD))
+
+
+def pam_list(type):
+  """
+  absolute or relative
+  """
+  if type == "relative":
+    LIST = []
+    for i in glob.glob(PATH_PAM + "*"):
+      LIST.append(i[11:])
+    return LIST
+  else:
+    return glob.glob(PATH_PAM + "*")
+
+
+def cleaning(pam):
+  for p in pam:    
+    if p not in pam_list("relative"):
+      print("error: can't find this PAM configuration file")
+      sys.exit(2)
+    else:
+      try:
+        with open(PATH_PAM + p,"r") as input:
+          with open(PATH_PAM + "." + p,"w") as output: 
+            for line in input:
+              if not re.search("accesscontrol",line):
+                output.write(line)
+      except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(2)
+
+      try:
+        shutil.move(PATH_PAM + "." + p, PATH_PAM + p)
+      except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(2)
+  print("ok")
+
+
+def configure(pam):
+  for p in pam:
+    if p not in pam_list("relative"):
+      print("error: can't find this PAM configuration file")
+      sys.exit(2)
+    else:
+      try:
+        with open(PATH_PAM + p, "a") as pam_file:
+          pam_file.write("\n#PAM-accesscontrol configuration\n")
+          pam_file.write("auth        required     pam_python.so accesscontrol.py\n")
+          pam_file.write("session     required     pam_python.so accesscontrol.py\n")
+      except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(2)
+  print("ok")
+
+
+def show_config():
+  count = 0
+  for file in pam_list("absolute"):
+    print ("-----------------------------------------------------------------------------------------------------------")
+    with open(file) as fd:
+      count = 0
+      for line in fd:
+        if re.search("accesscontrol",line):
+          if count == 0:
+            print (file, "\t\t\t\t", line, end="")
+          else:
+            print ("\t\t\t\t\t\t", line, end="")
+          count = count + 1
+    if count == 0:
+      print (file)
+
+
+if __name__ == '__main__':
+  if len(sys.argv) == 2 and sys.argv[1] == "list":
+    for i in pam_list("relative"):
+      print (i)
+
+  elif len(sys.argv) == 2 and sys.argv[1] == "show-config":  show_config()
+  elif len(sys.argv)  > 2 and sys.argv[1] == "show-info":    show_info(sys.argv[2:])
+  elif len(sys.argv)  > 2 and sys.argv[1] == "configure":    configure(sys.argv[2:])
+  elif len(sys.argv)  > 2 and sys.argv[1] == "make-clean":   cleaning(sys.argv[2:])
+  else:                                                      usage() 
+  sys.exit()

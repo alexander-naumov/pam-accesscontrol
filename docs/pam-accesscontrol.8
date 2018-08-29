@@ -1,0 +1,100 @@
+.TH PAM-ACCESSCONTROL "8" "Aug 2018"
+.SH NAME
+PAM-accesscontrol \- PAM management system to control access to host.
+
+.SH SYNOPSIS
+.na
+.B pam-accesscontrol
+[
+.B list
+]
+.br
+.ti +18
+[
+.BI show-info " daemon"
+]
+.ti +18
+[
+.B show-config
+]
+.ti +18
+[
+.B configure
+.I daemon
+]
+.ti +18
+[
+.B make-clean
+.I daemon
+]
+
+
+.SH DESCRIPTION
+PAM-accesscontrol is the easily configurable system written in python3 to control access to
+host via PAM interfaces. It makes it possible to manages access for some user, group of users,
+or LDAP-groups by adding just one line to the config file.
+It's also possbile to get notification about establisching each new incoming SSH connection
+and allow or not allow it (by using notification window).
+PAM-accesscontrol recognizes SSH password and public key authentication and uses Syslog for
+every login-events.
+
+                                          _____________
+                     /= confirmation ==> |PyQt5 yes/no |          +-+-+-+
+                     |                   |_____________|          +     +  <---- ...
+               ______|__________          _____________           +     +  <---- ftp
+  _______     |                 |        |             |          +     +  <---- sshd
+ |systemd|<==>|PAM-accesscontrol| <====> |pam_python.so| <======> + PAM +  <---- login
+ |_______|    |_________________|        |_____________|          +     +  <---- sddm
+   |               |           |                                  +     +  <---- lightdm
+   |               |           |__________                        +     +  <---- kdm
+ loginctl(1)       |           |          |                       +     +  <---- ...
+ provides          |           |          |                       +-+-+-+
+ session info   Configfile  Logfile    Syslog
+
+
+Up to verion 0.95, pam-accesscontrol configured itself during the installation process.
+The configured daemons was sshd, login and display manager, automatically found in the
+system. Since version 0.96 user should do it himself by using pam-accesscontrol(8).
+Version 0.96 also introduced some changes to the syntax of the configuration file.
+Don't forget to update it.
+
+.SH OPTIONS
+.TP
+.B list
+shows all PAM compartible daemons avaliable in the system.
+.TP
+.BI show-info " daemon"
+shows short description about specific daemon.
+.TP
+.B show-config
+shows list of all PAM compartible daemons with current configuration of pam-accesscontol.
+.TP
+.BI configure " daemon"
+this option appends pam-accesscontrol configuration to the configuration file of the specific daemon.
+.TP
+.BI make-clean " daemon"
+this option removes pam-accesscontrol configuration from the configuration file of the specific daemon. This reverse option to the "configure".
+
+
+.SH FILES
+.TP
+.I /sbin/pam-accesscontrol
+Configuration management
+.TP
+.I /var/log/pam-accesscontrol-<YEAR>-<MONTH>.log
+Logfile
+.TP
+.I /etc/pam-accesscontrol.d/*.conf
+Configfile
+.PP
+
+.SH AUTHOR
+Written by Alexander Naumov <alexander_naumov@opensuse.org>
+.PP
+GitHub: https://github.com/alexander-naumov/pam-accesscontrol
+
+.SH "SEE ALSO"
+.BR loginctl(1),
+.BR pam (3),
+.BR pam (8),
+.BR pam-accesscontrol.conf (5)
