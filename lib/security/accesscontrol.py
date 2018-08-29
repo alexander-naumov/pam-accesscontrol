@@ -16,7 +16,10 @@
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess as sp
-import syslog, os, sys, re, time, datetime, glob
+import syslog, os, sys, re, time, datetime, glob, grp, pwd
+
+from ctypes import *
+from ctypes.util import find_library
 
 sshkey="unknown"
 
@@ -188,7 +191,7 @@ def number_of_logged_already(logtype, login, group, DEBUG):
   if DEBUG: syslog.syslog(logtype + "USERS list after compression: " + str(USERS))
 
   for U in USERS:
-    if U in get_users_from_group(group, login):
+    if U in check_users_group_list(logtype, group, login):
       item = item+1
   if DEBUG: syslog.syslog(logtype + "number of users (group '" + str(group) + "') after new connection: " + str(item))
   return item
@@ -203,7 +206,7 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
     if len(L.split(":")) != 2:
       if DEBUG: syslog.syslog(logtype + "wrong defined rule NUMBER '" + str(L) + "'... skipping")
     else:
-      if login in get_users_from_group(L.split(":")[0], login):
+      if login in check_users_group_list(logtype, L.split(":")[0], login):
         try:
           if int(L.split(":")[1]) < int(number_of_logged_already(logtype, login, L.split(":")[0], DEBUG)):
             if DEBUG: syslog.syslog(logtype + "no more users allowed for group '" + str(L.split(":")[0]) + "'")
@@ -225,15 +228,41 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
   else:          return False
 
 
-def get_users_from_group(group, login):
-  if group == "ALL": return [str(login)]
-  try:
-    out = sp.Popen(["/usr/bin/getent", "group", group], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0].split("\n")[0]
-    out = out.split(":")[-1]
-    return out.split(",")
-  except:
-    syslog.syslog(logtype + "I got nothing from getent...")
-    sys.exit(2)
+def check_users_group_list(logtype, group, login):
+  """
+  This function tries to call glibc to get the list of user's groups.
+  Theoretically, it should support local host groups, LDAP groups and sssd+LDAP (freeIPA, AD).
+  Type of the return value should be a LIST; empty LIST is authorized.
+  """
+  if group == "ALL":
+    syslog.syslog(logtype + "okay, group 'ALL' means everyone")
+    return [str(login)]
+
+  getgrouplist = cdll.LoadLibrary(find_library('libc')).getgrouplist
+
+  ngroups = 30
+  getgrouplist.argtypes = [c_char_p, c_uint, POINTER(c_uint * ngroups), POINTER(c_int)]
+  getgrouplist.restype = c_int32
+
+  grouplist = (c_uint * ngroups)()
+  ngrouplist = c_int(ngroups)
+
+  user = pwd.getpwnam(login)
+  ct = getgrouplist(user.pw_name, user.pw_gid, byref(grouplist), byref(ngrouplist))
+
+  # if 30 groups was not enought this will be -1, try again
+  # luckily the last call put the correct number of groups in ngrouplist
+  if ct < 0:
+    getgrouplist.argtypes = [c_char_p, c_uint, POINTER(c_uint *int(ngrouplist.value)), POINTER(c_int)]
+    grouplist = (c_uint * int(ngrouplist.value))()
+    ct = getgrouplist(user.pw_name, user.pw_gid, byref(grouplist), byref(ngrouplist))
+
+  for i in xrange(0, ct):
+    gid = grouplist[i]
+    if (group == grp.getgrgid(gid).gr_name):
+      syslog.syslog(logtype + "user '" + str(login) + "' is a member of group '" + str(group) + "'")
+      return [str(login)]
+  return []
 
 
 def dialog(DEBUG, rhost, user, flavor, SERVICE):
@@ -266,7 +295,7 @@ def check(logtype, access, i, rules, login, DEBUG):
         else:
           if DEBUG: syslog.syslog(logtype + "I'm going to look at GROUP list: " +str(i['OPTION'].split(" ")[1]))
           for group in i['LIST']:
-            access[r] = access[r] + get_users_from_group(group, login)
+            access[r] = access[r] + check_users_group_list(logtype, group, login)
   return access
 
 
