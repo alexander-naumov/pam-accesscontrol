@@ -21,7 +21,7 @@
 import subprocess as sp
 import os, sys, re, glob, shutil, platform
 
-VERSION = "v0.96"
+VERSION = "v0.96beta"
 PATH_PAM = "/etc/pam.d/"
 
 
@@ -34,11 +34,19 @@ def usage():
   print ("pam-accesscontrol configure")
   print ("pam-accesscontrol make-clean")
 
-  print ("Documentation: man pages pam-accesscontrol and pam-accesscontrol.conf")
+  print ("Documentation: man pages pam-accesscontrol(8) and pam-accesscontrol.conf(5)")
   sys.exit()
 
 
 def distribution():
+  """
+  It checks GNU distribution running on. Addition methods are preferable.
+
+  FIXME: add check for empty returned list
+
+  Input : VOID
+  Output: STRING "DEB" or "RPM", depend on distribution
+  """
   if platform.linux_distribution()[0] in ['Ubuntu', 'Debian']:
     return 'DEB'
   if platform.linux_distribution()[0] in ['CentOS Linux', 'openSUSE', 'SuSE']:
@@ -49,6 +57,13 @@ def distribution():
 
 
 def show_info(pam):
+  """
+  This function try to get description from the packaging database via rpm(1)
+  or dpkg-query(1).
+
+  Input : LIST of pam services.
+  Output: VOID
+  """
   for p in pam:
     if p in pam_list("relative"):
       if distribution() == "DEB":
@@ -62,7 +77,11 @@ def show_info(pam):
 
 def pam_list(type):
   """
-  absolute or relative
+  Simple, but a very important function. This should be used as a check for
+  pam files. KISS principle is highly preferable here ;-)
+
+  Input : STRINGs: "realative" for realative PATHs and all others strings for absolute PATH.
+  Output: LIST of pam files.
   """
   if type == "relative":
     LIST = []
@@ -74,6 +93,13 @@ def pam_list(type):
 
 
 def cleaning(pam):
+  """
+  It removes information about pam-accesscontrol configuration from pam files.
+  Again - it writes to /etc/pam.d/* files. Be extremely careful here!
+
+  Input : LIST of pam services
+  Output: VOID
+  """
   for p in pam:    
     if p not in pam_list("relative"):
       print("error: can't find this PAM configuration file")
@@ -98,6 +124,13 @@ def cleaning(pam):
 
 
 def configure(pam):
+  """
+  It adds pam-accesscontrol configuration to the /etc/pam.d/* files.
+  Again - it writes to /etc/pam.d/* files. Be extremely careful here!
+
+  Input : LIST of pam services
+  Output: VOID
+  """
   for p in pam:
     if p not in pam_list("relative"):
       print("error: can't find this PAM configuration file")
@@ -115,6 +148,12 @@ def configure(pam):
 
 
 def show_config():
+  """
+  It parses pam files and shows pam-accesscontrol configuration in it.
+
+  Input : VOID
+  Output: VOID
+  """
   count = 0
   for file in pam_list("absolute"):
     print ("-----------------------------------------------------------------------------------------------------------")
