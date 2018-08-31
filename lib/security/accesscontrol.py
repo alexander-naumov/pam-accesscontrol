@@ -34,7 +34,7 @@ def create_log(logtype, SERVICE, rhost, user, mode, msg):
   if not rhost: rhost = "localhost"
   try:
     fd = open(FILE, 'a+')
-    fd.write("%s%s%s%s%s\n" % (now.ljust(23), SERVICE.ljust(7), str(mode).ljust(10), (str(user) + "@" + str(rhost)).ljust(50), msg.ljust(15)))
+    fd.write("%s%s%s%s%s\n" % (now.ljust(23), SERVICE.ljust(10), str(mode).ljust(10), (str(user) + "@" + str(rhost)).ljust(50), msg.ljust(15)))
     fd.close()
   except:
     syslog.syslog(logtype + "can't open/write logfile " + FILE)
@@ -106,6 +106,7 @@ def configuration(logtype):
           all_conf = all_conf + conf
       except:
         syslog.syslog(logtype + "can't open file: " + cur_file)
+  #syslog.syslog(logtype + "config: " + str(all_conf))
   return all_conf
 
 
@@ -153,10 +154,14 @@ def config_parser(logtype, SERVICE, DEBUG):
   defined rules. Broken rules will be just ignored (for security reason).
   """
   rules = []
-  for rule in [c for c in configuration(logtype) if len(c) > 3 and c[:3] == SERVICE]:
+  for rule in [c for c in configuration(logtype) if len(c) > 5]:
+    if DEBUG: syslog.syslog(logtype + "rule: " + str(rule))
     dic = {}
     if len(rule.split(" ")) != 4:
       if DEBUG: syslog.syslog(logtype + "broken rule, wrong number of options... skipping: " +str(rule))
+
+    elif rule.split(" ")[0] != SERVICE.upper():
+      if DEBUG: syslog.syslog(logtype + "other service... skipping: " + str(rule))
 
     elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER']:
       if DEBUG: syslog.syslog(logtype + "second parameter is broken: " +str(rule))
@@ -191,7 +196,7 @@ def number_of_logged_already(logtype, login, group, DEBUG):
   if DEBUG: syslog.syslog(logtype + "USERS list after compression: " + str(USERS))
 
   for U in USERS:
-    if U in check_users_group_list(logtype, group, login):
+    if U in check_users_group_list(logtype, group, login, DEBUG):
       item = item+1
   if DEBUG: syslog.syslog(logtype + "number of users (group '" + str(group) + "') after new connection: " + str(item))
   return item
@@ -206,7 +211,7 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
     if len(L.split(":")) != 2:
       if DEBUG: syslog.syslog(logtype + "wrong defined rule NUMBER '" + str(L) + "'... skipping")
     else:
-      if login in check_users_group_list(logtype, L.split(":")[0], login):
+      if login in check_users_group_list(logtype, L.split(":")[0], login, DEBUG):
         try:
           if int(L.split(":")[1]) < int(number_of_logged_already(logtype, login, L.split(":")[0], DEBUG)):
             if DEBUG: syslog.syslog(logtype + "no more users allowed for group '" + str(L.split(":")[0]) + "'")
@@ -228,14 +233,14 @@ def check_number_in_group(logtype, login, LIST, DEBUG):
   else:          return False
 
 
-def check_users_group_list(logtype, group, login):
+def check_users_group_list(logtype, group, login, DEBUG):
   """
   This function tries to call glibc to get the list of user's groups.
   Theoretically, it should support local host groups, LDAP groups and sssd+LDAP (freeIPA, AD).
   Type of the return value should be a LIST; empty LIST is authorized.
   """
   if group == "ALL":
-    syslog.syslog(logtype + "okay, group 'ALL' means everyone")
+    if DEBUG: syslog.syslog(logtype + "okay, group 'ALL' means everyone")
     return [str(login)]
 
   getgrouplist = cdll.LoadLibrary(find_library('libc')).getgrouplist
@@ -260,7 +265,7 @@ def check_users_group_list(logtype, group, login):
   for i in xrange(0, ct):
     gid = grouplist[i]
     if (group == grp.getgrgid(gid).gr_name):
-      syslog.syslog(logtype + "user '" + str(login) + "' is a member of group '" + str(group) + "'")
+      if DEBUG: syslog.syslog(logtype + "user '" + str(login) + "' is a member of group '" + str(group) + "'")
       return [str(login)]
   return []
 
@@ -276,8 +281,8 @@ def dialog(DEBUG, rhost, user, flavor, SERVICE):
 
 def check(logtype, access, i, rules, login, DEBUG):
   """
-  It get list of rules, parses these and fills 'access' dictonary with 4
-  lists: CLOSE, ASK, OPEN and NUMBER.
+  It gets list of rules, parses it and fills the 'access' dictonary with 4
+  lists: CLOSE, ASK, OPEN and NUMBER
   """
   for r in rules:
     if DEBUG: syslog.syslog(logtype + "rules: "+ str(r))
@@ -295,7 +300,7 @@ def check(logtype, access, i, rules, login, DEBUG):
         else:
           if DEBUG: syslog.syslog(logtype + "I'm going to look at GROUP list: " +str(i['OPTION'].split(" ")[1]))
           for group in i['LIST']:
-            access[r] = access[r] + check_users_group_list(logtype, group, login)
+            access[r] = access[r] + check_users_group_list(logtype, group, login, DEBUG)
   return access
 
 
@@ -325,12 +330,12 @@ def allow(SERVICE, logtype, host, login, DEFAULT, DEBUG):
   for i in access['OPEN']:
     if i in access['CLOSE']: access['OPEN'].remove(i)
 
-  if login in access['CLOSE']:    return "CLOSE"
+  if login in access['CLOSE']:          return "CLOSE"
   elif login in access['ASK']:
-    if SERVICE in ["SSH", "KEY"]: return "ASK"
-    else:                         return "CLOSE"
-  elif login in access['OPEN']:   return "OPEN"
-  else:                           return DEFAULT
+    if SERVICE in ["sshd", "sshd-key"]: return "ASK"
+    else:                               return "CLOSE"
+  elif login in access['OPEN']:         return "OPEN"
+  else:                                 return DEFAULT
 
 
 def main(SERVICE, logtype, pamh, flags, argv):
@@ -356,18 +361,19 @@ def main(SERVICE, logtype, pamh, flags, argv):
 
   if mode == "ASK":
     if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
-    ret = str(dialog(DEBUG, rhost, user, "ssh-ask", SERVICE))
+    ret = str(dialog(DEBUG, rhost, user, "ask", SERVICE))
     if DEBUG: syslog.syslog(logtype + "[0->Yes; 1->No] RET = " + str(ret))
     try:
       if int(ret) == 0:
-        if allow(SERVICE, logtype, rhost, user, DEFAULT,"False") == "ASK":
+        if allow(SERVICE, logtype, rhost, user, DEFAULT, False) == "ASK":
           create_log(logtype, SERVICE, rhost, user, mode, "creating new session")
+          syslog.syslog(logtype + "access granted")
           return pamh.PAM_SUCCESS
         else:
-          syslog.syslog(logtype + "Connection CAN NOT be established; because of NUMBER rule")
+          syslog.syslog(logtype + "connection CAN NOT be established; because of NUMBER rule")
           return pamh.PAM_AUTH_ERR
       else:
-        syslog.syslog(logtype + "Connection SHOULD NOT be established; because of X-session owner's decision")
+        syslog.syslog(logtype + "connection SHOULD NOT be established; because of X-session owner's decision")
         return pamh.PAM_AUTH_ERR
     except:
       syslog.syslog(logtype + "something goes wrong... no return value from notification window")
@@ -376,8 +382,8 @@ def main(SERVICE, logtype, pamh, flags, argv):
   elif mode == "CLOSE":
     create_log(logtype, SERVICE, rhost, user, mode, "access denied")
     syslog.syslog(logtype + "access denied")
-    if SERVICE == "XDM":
-      dialog(DEBUG, rhost, user, "access-denied-xorg", SERVICE)
+    if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
+      dialog(DEBUG, rhost, user, "xorg", SERVICE)
     return pamh.PAM_AUTH_ERR
 
   elif mode == "OPEN":
@@ -394,6 +400,7 @@ def pam_sm_authenticate(pamh, flags, argv):
   logtype = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
   syslog.syslog(logtype + "==============================================")
   syslog.syslog(logtype + "authentication")
+
   pamh.authtok
   try:
     syslog.syslog(logtype + "remote user: "+ str(pamh.get_user()))
@@ -402,25 +409,23 @@ def pam_sm_authenticate(pamh, flags, argv):
     syslog.syslog(logtype + "something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
-  if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
-    return main("XDM", logtype, pamh, flags, argv)
   if str(pamh.service) == "sshd":
     global sshkey
     sshkey = "password"
 
-  return pamh.PAM_SUCCESS
+  return main(str(pamh.service), logtype, pamh, flags, argv)
 
 
 def pam_sm_close_session(pamh, flags, argv):
   logtype = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
   syslog.syslog(logtype + "closing session")
 
-  if not check_log(logtype, "SSH", str(pamh.rhost), str(pamh.get_user())):
+  if not check_log(logtype, "sshd", str(pamh.rhost), str(pamh.get_user())):
     syslog.syslog(logtype + "no need to notify")
   else:
     DEFAULT, DEBUG = get_default(logtype)
     if DEBUG: syslog.syslog(logtype + "SHOW ME WINDOW")
-    dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "ssh-info", "SSH")
+    dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "info", str(pamh.service))
 
   return pamh.PAM_SUCCESS
 
@@ -434,23 +439,21 @@ def pam_sm_open_session(pamh, flags, argv):
     global sshkey
     if sshkey == "unknown":
       sshkey  = "sshkey"
-      SERVICE = "KEY"
+      SERVICE = "sshd-key"
     else:
-      SERVICE = "SSH"
+      SERVICE = "sshd"
+    return main(SERVICE, logtype, pamh, flags, argv)
 
   elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     # We check XDM's rules on the 'auth' step.
     # (because we want to show error message (in CLOSE case)
     # and it's possible only BEFORE KDE-session starts)
+    syslog.syslog(logtype + "open session")
     return pamh.PAM_SUCCESS
-  elif str(pamh.service) == "login":
-    SERVICE = "TTY"
-  else:
-    syslog.syslog(logtype + "can't define PAM service...")
-    sys.exit(2)
 
-  syslog.syslog(logtype + "open session")
-  return main(SERVICE, logtype, pamh, flags, argv)
+  else:
+    return main(str(pamh.service), logtype, pamh, flags, argv)
+
 
 def pam_sm_setcred(pamh, flags, argv):
   return pamh.PAM_SUCCESS

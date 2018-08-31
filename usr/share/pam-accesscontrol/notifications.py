@@ -85,7 +85,7 @@ def ask_window_is_there(host, login):
   Until now I didn't found some better solution then just to check for this window (by parsing for all processes).
   FIXME: looking for some better solution...
   """
-  pattern = "/usr/bin/python3 -Es /usr/share/pam-accesscontrol/windows.py ssh-ask " + host + " " + login
+  pattern = "/usr/bin/python3 -Es /usr/share/pam-accesscontrol/windows.py ask " + host + " " + login
   for i in sp.getoutput("ps aux").split("\n"):
       proc = re.search(pattern, i)
       if proc is not None:
@@ -114,7 +114,7 @@ def get_xauthority(name):
 
 if __name__ == '__main__':
   if (len(sys.argv) != 6):
-    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ssh-ask | ssh-info | access-denied-xorg] [SSH | KEY]")
+    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ask | info | xorg] [OPTIONS]")
     sys.exit(1)
 
   DEBUG = False
@@ -124,22 +124,22 @@ if __name__ == '__main__':
   if sys.argv[4]: window = sys.argv[4]
   if sys.argv[5]: auth   = sys.argv[5]
 
-  if window == "access-denied-xorg": logtype = "pam-accesscontrol(Xorg): "
-  else:                              logtype = "pam-accesscontrol(sshd): "
+  if window == "xorg": logtype = "pam-accesscontrol(Xorg): "
+  else:                logtype = "pam-accesscontrol(" + auth + "): "
 
   if DEBUG:
     syslog.syslog(logtype + "DEBUG   = " + str(DEBUG))
     syslog.syslog(logtype + "HOST    = " + str(rhost))
     syslog.syslog(logtype + "NAME    = " + str(rname))
     syslog.syslog(logtype + "WINDOW  = " + str(window))
-    syslog.syslog(logtype + "SSHAUTH = " + str(auth))
+    syslog.syslog(logtype + "OPTIONS = " + str(auth))
 
   sessions = session_info(logtype)
   if not sessions:
     syslog.syslog(logtype + "'loginctl' returns nothing...")
 
-  elif window == "access-denied-xorg":
-    if DEBUG: syslog.syslog(logtype + "ACCESS-DENIED-XORG")
+  elif window == "xorg":
+    if DEBUG: syslog.syslog(logtype + "XORG")
     for i in sessions:
       if i['Class'] == 'greeter':
         if DEBUG: syslog.syslog(logtype + "name = " + str(i['Name']))
@@ -149,19 +149,21 @@ if __name__ == '__main__':
 
         print (sp.call('export DISPLAY=' + str(i['Display']) +
                    ' && export XAUTHORITY=' + str(xauth) +
-                   ' && /usr/share/pam-accesscontrol/windows.py access-denied-xorg ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
+                   ' && /usr/share/pam-accesscontrol/windows.py xorg ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
         print ("0")
         sys.exit(0)
   else:
     n_conn = is_there(logtype, rhost, rname, sessions)
-    syslog.syslog(logtype + "number of SSH sessions: "+str(n_conn))
+    if DEBUG: syslog.syslog(logtype + "number of SSH sessions: "+str(n_conn))
 
 
   active = 0
   for i in sessions:
+    if DEBUG: syslog.syslog(logtype + "session: "+ str(i))
     if 'Remote' in i and 'Type' in i and 'UID' in i:
       if i['Remote'] == 'no' and i['Type'] == 'x11' and i['State'] == 'active' and i['Name'] != 'sddm':
+        if DEBUG: syslog.syslog(logtype + "X owner is there")
         try:
           os.setuid(int(i['UID']))
         except os.error:
@@ -172,23 +174,23 @@ if __name__ == '__main__':
           print ("1")
           sys.exit(1)
 
-        if window == "ssh-info":
+        if window == "info":
           if n_conn == 0:
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py ssh-info ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
+                           ' && /usr/share/pam-accesscontrol/windows.py info ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
-        elif window == "ssh-ask":
+        elif window == "ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py ssh-ask ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth),
+                           ' && /usr/share/pam-accesscontrol/windows.py ask ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth),
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print ("0")
             sys.exit(0)
 
-  if not active and window != "ssh-info":
-    syslog.syslog(logtype + "can't find owner of X session and ask him => access granted")
+  if not active and window != "info":
+    syslog.syslog(logtype + "can't find owner of the X session and ask him => access granted")
     print ("0")
     sys.exit(0)

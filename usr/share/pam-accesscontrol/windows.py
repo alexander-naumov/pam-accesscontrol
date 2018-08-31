@@ -31,8 +31,8 @@ class SSH_INFO(QtWidgets.QWidget):
 class SSH_ASK(QtWidgets.QWidget):
   def __init__(self, USER, HOST, AUTH):
     super(SSH_ASK, self).__init__()
-    if AUTH == "KEY": AUTH = "public-key authentication"
-    else:             AUTH = "password authentication"
+    if AUTH == "sshd-key": AUTH = "public-key authentication"
+    else:                  AUTH = "password authentication"
 
     reply = QtWidgets.QMessageBox.question(self, 'New SSH connection',
             "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
@@ -53,8 +53,8 @@ class ACCESS_DENIED(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-  if (len(sys.argv) != 5) or sys.argv[1] not in ["ssh-ask","ssh-info","access-denied-xorg"]:
-    print ("usage: " + sys.argv[0] + " [ssh-ask | ssh-info | access-denied-xorg] HOST USER [SSH | KEY | XDM]")
+  if (len(sys.argv) != 5) or sys.argv[1] not in ["ask","info","xorg"]:
+    print ("usage: " + sys.argv[0] + " [ask | info | xorg] HOST USER [sshd | sshd-key | XDM]")
     sys.exit(1)
 
   if sys.argv[2] == "::1":
@@ -64,6 +64,6 @@ if __name__ == '__main__':
 
   app = QtWidgets.QApplication(sys.argv)
 
-  if   sys.argv[1] == "ssh-ask":            SSH_ASK(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
-  elif sys.argv[1] == "ssh-info":           SSH_INFO(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
-  elif sys.argv[1] == "access-denied-xorg": ACCESS_DENIED(str(sys.argv[3]))
+  if   sys.argv[1] == "ask":    SSH_ASK(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
+  elif sys.argv[1] == "info":   SSH_INFO(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
+  elif sys.argv[1] == "xorg":   ACCESS_DENIED(str(sys.argv[3]))
