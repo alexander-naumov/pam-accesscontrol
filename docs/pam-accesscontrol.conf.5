@@ -1,6 +1,6 @@
-.TH "PAM-ACCESSCONTROL\&.CONF" "5" "28/07/2018" "File Formats Manual"
+.TH "PAM-ACCESSCONTROL\&.CONF" "5" "31/08/2018" "File Formats Manual"
 .SH NAME
-/etc/pam-accesscontrol.d/pam-accesscontrol.conf \- configuration file.
+/etc/pam-accesscontrol.d/pam-accesscontrol.conf \- pam-accesscontrol configuration file.
 
 .SH CONFIGURATION
 To configure pam-accesscontrol you will need to fill config file. This file should
@@ -12,16 +12,18 @@ contain list of rules. Each rule has to include exactly 4 fields separated by sp
 .RS 3
 SERVICE
 .RS 4
-defines type of \fIPAM\fR service that should be managed. There are 4 types:
-\fISSH\fR, \fIKEY\fR, \fIXDM\fR and \fITTY\fR.
+defines \fIPAM\fR service that should be managed. List of PAM services/daemons could be found
+in \fB/etc/pam.d/*\fP directory. Each service could be configured via pam-accesscontrol(8)
+management tool.
 .PP
-\fISSH\fR manages incoming SSH connections (from local- and remote hosts) by using password
-authentication. \fIKEY\fR is similar to SSH, but it managed only the ssh-key authentication
-based connections. Very importand to understand: SSH does nothing with ssh-key authentication
-SSH-sessions and KEY does not managed password authentications. \fIXDM\fR manages desktop
-managers. \fITTY\fR is responsible for login(1) configuration running on the /dev/tty devices.
+Special SERVICE is \fBsshd\fP. It manages incoming SSH connections (from local- and remote hosts)
+by using \fIpassword\fR authentication. There is other SSH service called \fBsshd-key\fP. It is
+similar to sshd, but it managed the \fIssh-public-key\fR authentication based connections only.
+Both SERVICEs points to the \fB/etc/pam.d/sshd\fP file, but in configuration file should be
+specified what kind of connections should be managed. It is important to understand: \fBsshd\fP
+does nothing with ssh-public-key authentication and on the contrary - \fBsshd-key\fP not managed
+password authentication sessions.
 .RE
-
 .PP
 OPTION
 .RS 4
@@ -48,7 +50,7 @@ separator between value of the TARGET and value for its PARAMETER. For example, 
 limit for 3 users from group 'lp':
 .PP
 .RS 7
-SSH NUMBER GROUP lp:3
+SSHD NUMBER GROUP lp:3
 .RE
 .PP
 Keep in mind, that it doesn't open or close access for user automaticaly. It needed to be
@@ -56,9 +58,9 @@ defined additionally. For example, this settings should be used for configuratio
 one user from group 'admin' may have SSH access:
 .PP
 .RS 7
-SSH OPEN GROUP admin
+SSHD OPEN GROUP admin
 .br
-SSH NUMBER GROUP admin:1
+SSHD NUMBER GROUP admin:1
 .RE
 .PP
 Also very important to understand that NUMBER doesn't sets limits for number of sessions,
@@ -71,8 +73,9 @@ of sessions is not limited.
 .PP
 TARGET
 .RS 4
-defines target for the SERVICE. At the moment supported targets are \fIUSER\fR and
-\fIGROUP\fR.
+defines target for SERVICE. At the moment supported targets are \fIUSER\fR and
+\fIGROUP\fR. GROUPs includes and supports normal POSIX groups, primary groups and LDAP
+groups (from, for example, FreeIPA or Active Directory).
 .RE
 
 .PP
@@ -81,18 +84,19 @@ PARAMETERS
 this field defines values for OPTION. It's possible to set list of parameters in one line;
 use "," as a separator for that. No space is needed.
 .PP
-This example demonstrates setting where SSH access is open for users 'tom' and 'alex':
+This example demonstrates setting where SSH access via public-key authentication is open
+for users 'tom' and 'alex' only:
 .PP
 .RS 7
-SSH OPEN USER tom,alex
+SSHD-KEY OPEN USERS tom,alex
 .RE
 .PP
-For NUMBER is also used ":" symbol to split value and its parameter:
+For NUMBER is also used ":" symbol to split values and its parameters:
 .PP
 .RS 7
-SSH OPEN GROUP limux,lp
+SSHD OPEN GROUP heroes,lp
 .br
-SSH NUMBER GROUP limux:2,lp:3
+SSHD NUMBER GROUP heroes:2,lp:3
 .RE
 .RE
 .RE
@@ -135,6 +139,7 @@ DEBUG
 It's also possible to enable extra logs in syslog. This includes checks for return values
 from most of the functions. That could be very helpful by debugging or development. To set
 \fIDEBUG\fR parameter just add this line to a config file:
+.PP
 .RS 7
 DEBUG:True
 .RE
@@ -142,11 +147,10 @@ DEBUG:True
 .RE
 
 .PP
-PAM-accesscontrol supports comments in config file. Comments start with the hash character,
-#, and extend to the end of the physical line (exactly like for most configuration files
-of the UNIX/Linux servers).
+It can be helpfull to use comments in configuration file. Comments starts with the hash
+character, #, and extend to the end of the physical line (exactly like for the most configuration
+files in the the UNIX/Linux world).
 .PP
-
 
 .SH EXAMPLES
 User A: member of group "linux-users"
@@ -163,15 +167,14 @@ User C: member of groups "linux-users" and "lpadmin"
 \fIConfiguration\fR 1:
 .PP
 .RS 5
-Member of group "admin" login via XDM. For all next users (group name is not important)
-access via SSH, XDM and TTY should be closed.
+Member of group "admin" may to login via sddm. There is no access for all next users.
 .PP
 .RS 7
 DEFAULT:CLOSE
 .br
-XDM OPEN GROUP admin
+SDDM OPEN GROUP admin
 .br
-XDM NUMBER GROUP admin:1
+SDDM NUMBER GROUP admin:1
 .RE
 .RE
 .PP
@@ -179,22 +182,22 @@ XDM NUMBER GROUP admin:1
 \fIConfiguration\fR 2:
 .PP
 .RS 5
-User A login via XDM. User B can to login only via SSH (should be accept ssh-key
-authentication only) and only when user A confirm it. No XDM or TTY for user B
-should be possible. If user A allows access for user B, user B can create more then
-just one SSH-connections. For all other users should not be possible to login
+User A should have access via via sddm. User B can to login only via SSH with public-key
+authentication only and only when user A confirm it. No other access methond for user B
+should be possible. If user A allows access, user B can create more then
+just one SSH-connections. For all other users it should not be possible to login
 while users A and B are logged already.
 .PP
 .RS 7
 DEFAULT:CLOSE
 .br
-XDM OPEN GROUP linux-users
+SDDM OPEN GROUP linux-users
 .br
-XDM NUMBER GROUP linux-users:1
+SDDM NUMBER GROUP linux-users:1
 .br
-KEY ASK GROUP admin
+SSHD-KEY ASK GROUP admin
 .br
-KEY NUMBER GROUP admin:1
+SSHD-KEY NUMBER GROUP admin:1
 .RE
 .PP
 That will work for user B only if user A confirms establishing of the new SSH-session.
@@ -202,15 +205,20 @@ In case you want to allow access for user B without confirmation, change option 
 to \fIOPEN\fR:
 .PP
 .RS 7
-"SSH ASK GROUP admin" => "SSH OPEN GROUP admin"
-.RE
+"SSHD-KEY ASK GROUP admin" => "SSHD-KEY OPEN GROUP admin"
 .RE
 .PP
-
+What will happen when user from group "admin" will try to connect via SSH before
+user A creates its X session and can confirm establisching SSH-session for user A?
+Well... in this case establisching SSH-session for user B will be possible without
+confirmation. Warning, this can be surprise somebody! It is default behavior in
+version 0.96. This is not new.
+.PP
 \fIConfiguration\fR 3:
 .PP
 .RS 5
-Everyone can to login via SSH, XDM and TTY.
+Everyone have access to all daemons via all services. Everything for everybody is open.
+This is default configuration after pam-accesscontrol will be installed.
 .PP
 .RS 7
 DEFAULT:OPEN
@@ -221,14 +229,14 @@ DEFAULT:OPEN
 \fIConfiguraion\fR 4:
 .PP
 .RS 5
-Everyone can to login via XDM and TTY, but nobody via SSH.
+Everything is open except of SSH.
 .PP
 .RS 7
 DEFAULT:OPEN
 .br
-SSH CLOSE GROUP ALL
+SSHD CLOSE GROUP ALL
 .br
-KEY CLOSE GROUP ALL
+SSHD-KEY CLOSE GROUP ALL
 .RE
 .RE
 .PP
@@ -237,10 +245,9 @@ Group "ALL" means everyone. Use capital letters: "ALL", not "all" or "All"!
 \fIConfiguraion\fR 5:
 .PP
 .RS 5
-Everyone can to login via XDM and TTY. Everyone can to login via SSH, but only with
-confirmation (of X session owner).
+Everyone can to login via all services, but for establisching SSH-session confirmation is necessary.
 .PP
-Please keep in mind, if there is no active X session (in this case nobody will be able
+Keep in mind, if there is no active X session (in this case nobody will be able
 to confirm the opening/creating of the new SSH-session (looked X session is an active
 session)), pam-accesscontrol interprets an ASK rule as OPEN. In other words, SSH access
 will be open (remote users still will need to use passwords or passphrase for its
@@ -249,9 +256,9 @@ ssh-keys, i.e. standart SSH auth mechanism).
 .RS 7
 DEFAULT:OPEN
 .br
-SSH ASK GROUP ALL
+SSHD ASK GROUP ALL
 .br
-KEY ASK GROUP ALL
+SSHD-KEY ASK GROUP ALL
 .RE
 .RE
 .PP
@@ -259,15 +266,13 @@ KEY ASK GROUP ALL
 \fIConfiguraiton\fR 6:
 .PP
 .RS 5
-Only members of group 'admin' can to login via SSH (without confirmation).
+Only members of group 'admin' can to login via SSH by using public-key authentication (without confirmation).
 .PP
 .RS 7
 DEFAULT:CLOSE
 .br
-SSH OPEN GROUP admin
+SSHD-KEY OPEN GROUP admin
 .br
-KEY OPEN GROUP admin
-.RE
 .RE
 .PP
 
@@ -275,16 +280,16 @@ KEY OPEN GROUP admin
 There are some problems at the moment with display manager "ACCESS DENIED" messages.
 
 .SH AUTHOR
-Writen by Alexander Naumov <alexander_naumov@opensuse.org>
+Written by Alexander Naumov <alexander_naumov@opensuse.org>
 .PP
 GitHub: https://github.com/alexander-naumov/pam-accesscontrol
 
 .SH "SEE ALSO"
-.BR pam (3),
-.BR pam (8),
-.BR tty (4),
-.BR login (1),
-.BR sddm (1),
-.BR sshd (8),
-.BR pam-accesscontrol (1)
+.BR pam(3),
+.BR pam(8),
+.BR tty(4),
+.BR login(1),
+.BR sddm(1),
+.BR sshd(8),
+.BR pam-accesscontrol(8)
 
