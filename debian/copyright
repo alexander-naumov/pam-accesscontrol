@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: pam-accesscontrol
 Upstream-Contact: alexander_naumov@opensuse.org
-Source: https://github.com/alexander-naumov/pamac 
+Source: https://github.com/alexander-naumov/pam-accesscontrol
 
 Files: *
 Copyright: 2017      Alexander Naumov <alexander_naumov@opensuse.org>

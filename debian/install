@@ -1,3 +1,4 @@
 etc/* etc
 lib/* lib
+sbin/* sbin
 usr/* usr

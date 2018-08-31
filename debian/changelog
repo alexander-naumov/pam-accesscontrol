@@ -1,3 +1,13 @@
+pam-accesscontrol (0.96) unstable; urgency=low
+
+ * support for SSH public key authentication as a separate service
+ * config file uses now native /etc/pam.d/* names
+ * no preconfigurations anymore
+ * configuration management /sbin/pam-accesscontrol
+ * UNIX groups, gid itself and LDAP+sssd support (FreeIPA, Active Directory)
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org>  Fri, 31 Aug 2018 18:15:07 +0200
+
 pam-accesscontrol (0.95) unstable; urgency=low
 
   * bugfix: XAUTHORITY for lightdm
