@@ -26,6 +26,7 @@ Credits
 
 Copyright (c) 2017-2018 Alexander Naumov (alexander_naumov@opensuse.org).
 
-Licensed under GNU GPLv3 (see [LICENSE](../blob/master/LICENSE) file).
+Licensed under GNU GPLv3 (see `LICENSE`_ file).
 
+.. _LICENSE: https://github.com/alexander-naumov/pam-accesscontrol/blob/master/LICENSE
 .. _OBS: https://build.opensuse.org/package/show/home:Alexander_Naumov:DEV-pam-accesscontrol/pam-accesscontrol
