@@ -6,37 +6,44 @@ PAM-accesscontrol \- PAM management system to control access to host.
 .na
 .B pam-accesscontrol
 [
-.B list
+.B pam-list
 ]
 .br
 .ti +18
 [
-.BI show-info " daemon"
+.B show-pam-info
+.I SERVICE
 ]
 .ti +18
 [
-.B show-config
+.B show-pam-config
 ]
 .ti +18
 [
-.B configure
-.I daemon
+.B pam-configure
+.I SERVICE
 ]
 .ti +18
 [
-.B make-clean
-.I daemon
+.B make-pam-clean
+.I SERVICE
+]
+.ti +18
+[
+.B check-my-config
+.I FILE
 ]
 
 
 .SH DESCRIPTION
 PAM-accesscontrol is the easily configurable system written in python3 to control access to
-host via PAM interfaces. It makes it possible to manages access for some user, group of users,
-or LDAP-groups by adding just one line to the config file.
-It's also possbile to get notification about establisching each new incoming SSH connection
-and allow or not allow it (by using notification window).
-PAM-accesscontrol recognizes SSH password and public key authentication and uses Syslog for
-every login-events.
+host via PAM interfaces. It makes it possible to manages access for some user, group of users
+or LDAP-groups (supports FreeIPA and Active Directory) by adding just one line to the config
+file. It makes it possible to be notifyed about establisching each new incoming connection
+and allow or not allow it (by using notification window). PAM-accesscontrol supports and
+recognizes SSH password and public key authentication and uses Syslog for every login-events.
+
+
 
                                           _____________
                      /= confirmation ==> |PyQt5 yes/no |          +-+-+-+
@@ -60,21 +67,23 @@ Don't forget to update it.
 
 .SH OPTIONS
 .TP
-.B list
+.B pam-list
 shows all PAM compartible daemons avaliable in the system.
 .TP
-.BI show-info " daemon"
+.BI show-pam-info " service"
 shows short description about specific daemon.
 .TP
-.B show-config
+.B show-pam-config
 shows list of all PAM compartible daemons with current configuration of pam-accesscontol.
 .TP
-.BI configure " daemon"
+.BI pam-configure " service"
 this option appends pam-accesscontrol configuration to the configuration file of the specific daemon.
 .TP
-.BI make-clean " daemon"
+.BI make-pam-clean " service"
 this option removes pam-accesscontrol configuration from the configuration file of the specific daemon. This reverse option to the "configure".
-
+.TP
+.BI check-my-config " file"
+use it to execute configuration file syntax check to be sure everything fine ;-)
 
 .SH FILES
 .TP
