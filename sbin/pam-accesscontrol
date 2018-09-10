@@ -21,20 +21,32 @@
 import subprocess as sp
 import os, sys, re, glob, shutil, platform
 
-VERSION = "v0.96beta"
+VERSION = "v0.96 Beta"
 PATH_PAM = "/etc/pam.d/"
 
+def printf(clr, string):
+  if   clr == "RED":   print('\x1b[0;30;41m' + string + '\x1b[0m')
+  elif clr == "red":   print('\x1b[0;31;48m' + string + '\x1b[0m', end='')
+  elif clr == "GREEN": print('\x1b[0;30;42m' + string + '\x1b[0m')
+  elif clr == "green": print('\x1b[0;32;48m' + string + '\x1b[0m', end='')
+  else:                print(string, end='')
+  print("-------------------------------------------------------")
 
 def usage():
-  print ("pam-acesscontrol " + VERSION)
-  print ("usage:")
-  print ("pam-accesscontrol show-config")
-  print ("pam-accesscontrol show-info")
-  print ("pam-accesscontrol list")
-  print ("pam-accesscontrol configure")
-  print ("pam-accesscontrol make-clean")
-
-  print ("Documentation: man pages pam-accesscontrol(8) and pam-accesscontrol.conf(5)")
+  print ("pam-accesscontrol " + VERSION + "\n")
+  print ("Usage: pam-accesscontrol [Option] [Service | File]")
+  print ("\nOPTIONS:")
+  print ("  show-pam-config")
+  print ("  show-pam-info [Service]")
+  print ("  pam-list")
+  print ("  pam-configure [Service]")
+  print ("  make-pam-clean [Service]")
+  print ("  check-my-config [File]")
+  print ("\nEXAMPLES:")
+  print ("  pam-accesscontrol check-my-config /etc/pam-accesscontrol.d/pam-accesscontrol.conf")
+  print ("  pam-accesscontrol show-pam-info sshd login")
+  print ("  pam-accesscontrol pam-configure sshd")
+  print ("\nDocumentation: man pages pam-accesscontrol(8) and pam-accesscontrol.conf(5)")
   sys.exit()
 
 
@@ -157,7 +169,7 @@ def show_config():
   count = 0
   for file in pam_list("absolute"):
     print ("-----------------------------------------------------------------------------------------------------------")
-    with open(file) as fd:
+    with open(file, 'r') as fd:
       count = 0
       for line in fd:
         if re.search("accesscontrol",line):
@@ -170,14 +182,87 @@ def show_config():
       print (file)
 
 
+def check_user_config(files):
+  """
+  It makes a list of checks (syntax) for user's configuraion file.
+
+  Input:  LIST of STRINGs, list of files to check
+  Output: VOID
+  """
+  for FILE in files:
+    if not os.path.exists(FILE):
+      print ("Dammit! I can't find this file: "+ FILE)
+      sys.exit(2)
+
+    try:
+      with open(FILE, 'r') as config_file:
+        printf ("GREEN", "\nFILE: " + FILE)
+        for rule in config_file.readlines():
+          rule = rule.upper()
+          if rule[0] == "#" or not rule.strip():
+            continue
+
+          if rule[:8] == "DEFAULT:":
+            if rule[8:12] == "CLOSE" or rule[8:11] == "OPEN":
+              printf ("red", "DEFAULT should be CLOSE or OPEN: \n" + rule)
+            else:
+              printf ("green", rule)
+            continue
+
+          if rule[:6] == "DEBUG:":
+            if rule[6:10] == "TRUE" or rule[6:11] == "FALSE":
+              printf ("green", rule)
+            else:
+              printf ("red", "DEBUG should be TRUE or FALSE: \n" + rule)
+            continue
+
+          if len(rule.split(" ")) != 4:
+            printf ("red", "Broken rule, wrong options number:\n" + rule)
+
+          elif rule.split(" ")[0] not in [pam.upper() for pam in pam_list("relative") + ["sshd-key"]]:
+            printf ("red", "Broken rule, unknown PAM service: \n" + rule)
+
+          elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER']:
+            printf ("red", "Broken rule, second parameter is wrong: \n" + rule)
+
+          elif rule.split(" ")[2] not in ['USER', 'GROUP']:
+            printf ("red", "Broken rule, third parameter is wrong : \n" + rule)
+
+          else:
+            printf ("green", rule)
+
+    except OSError as err:
+      print("OS error: {0}".format(err))
+      sys.exit(2)
+
+
+def print_format_table():
+    """
+    It prints table of formatted text format options. Just as a demo here.
+
+    Input:  VOID
+    Output: VOID
+    """
+    for style in range(8):
+        for fg in range(30,38):
+            s1 = ''
+            for bg in range(40,48):
+                format = ';'.join([str(style), str(fg), str(bg)])
+                s1 += '\x1b[%sm %s \x1b[0m' % (format, format)
+            print(s1)
+        print('\n')
+
+
 if __name__ == '__main__':
-  if len(sys.argv) == 2 and sys.argv[1] == "list":
+  if len(sys.argv) == 2 and sys.argv[1] == "pam-list":
     for i in pam_list("relative"):
       print (i)
 
-  elif len(sys.argv) == 2 and sys.argv[1] == "show-config":  show_config()
-  elif len(sys.argv)  > 2 and sys.argv[1] == "show-info":    show_info(sys.argv[2:])
-  elif len(sys.argv)  > 2 and sys.argv[1] == "configure":    configure(sys.argv[2:])
-  elif len(sys.argv)  > 2 and sys.argv[1] == "make-clean":   cleaning(sys.argv[2:])
-  else:                                                      usage() 
+  elif len(sys.argv) == 2 and sys.argv[1] == "show-pam-config":  show_config()
+  elif len(sys.argv)  > 2 and sys.argv[1] == "show-pam-info":    show_info(sys.argv[2:])
+  elif len(sys.argv)  > 2 and sys.argv[1] == "pam-configure":    configure(sys.argv[2:])
+  elif len(sys.argv)  > 2 and sys.argv[1] == "make-pam-clean":   cleaning(sys.argv[2:])
+  elif len(sys.argv) >= 2 and sys.argv[1] == "check-my-config":  check_user_config(sys.argv[2:])
+  elif len(sys.argv) == 2 and sys.argv[1] == "color-table":      print_format_table()
+  else: usage()
   sys.exit()
