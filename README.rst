@@ -30,7 +30,7 @@ openSUSE Leap 15.0, XFCE, SSH pub-key authentication:
         :align: center
 
 Ubuntu 18.04, Unity, SSH pub-key authentication:
-    .. image: https://paste.opensuse.org/images/74975662.jpg
+    .. image:: https://paste.opensuse.org/images/74975662.jpg
         :alt: Ubuntu
         :width: 100%
         :align: center
