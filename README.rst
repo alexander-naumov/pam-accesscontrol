@@ -15,6 +15,13 @@ This is the last security layer for enterprises and personal use.
 
 We provide packages for many different GNU/Linux systems to make it easy to install or update pam-accesscontrol.
 
+Screenshots
+-----------
+    .. image:: https://paste.opensuse.org/images/5250347.jpg
+        :alt: sddm is CLOSEd for specific user
+        :width: 100%
+        :align: center
+
 Contributing
 ------------
 You can submit or ask for improvements using github's Pull Requests or Issues.
@@ -27,6 +34,8 @@ Credits
 Copyright (c) 2017-2018 Alexander Naumov (alexander_naumov@opensuse.org).
 
 Licensed under GNU GPLv3 (see `LICENSE`_ file).
+
+
 
 .. _LICENSE: https://github.com/alexander-naumov/pam-accesscontrol/blob/master/LICENSE
 .. _OBS: https://build.opensuse.org/package/show/home:Alexander_Naumov:DEV-pam-accesscontrol/pam-accesscontrol
