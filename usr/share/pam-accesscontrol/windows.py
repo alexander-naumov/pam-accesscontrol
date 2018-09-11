@@ -48,7 +48,7 @@ class ACCESS_DENIED(QtWidgets.QWidget):
   def __init__(self, USER):
     super(ACCESS_DENIED, self).__init__()
     reply = QtWidgets.QMessageBox.information(self, 'ACCESS DENIED',
-            "Login is not possible for user " + str(USER) + ".\nACCESS DENIED.")
+            "Login is not possible for user '" + str(USER) + "'.\nACCESS DENIED.")
 
 
 
