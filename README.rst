@@ -23,9 +23,15 @@ Kubuntu 18.04, sddm:
         :width: 100%
         :align: center
 
-openSUSE Leap 15.0, xfce, ssh-key authentication:
+openSUSE Leap 15.0, XFCE, SSH pub-key authentication:
     .. image:: https://paste.opensuse.org/images/32916432.jpg
         :alt: notification window for SSH
+        :width: 100%
+        :align: center
+
+Ubuntu 18.04, Unity, SSH pub-key authentication:
+    .. image: https://paste.opensuse.org/images/74975662.jpg
+        :alt: Ubuntu
         :width: 100%
         :align: center
 
