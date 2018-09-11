@@ -63,6 +63,10 @@ def distribution():
     return 'DEB'
   if platform.linux_distribution()[0] in ['CentOS Linux', 'openSUSE', 'SuSE']:
     return 'RPM'
+  if len(platform.linux_distribution()[0]) == 0:
+    if os.path.exists("/etc/SUSE-brand"): return "RPM"
+    if os.path.exists("/etc/redhat-release"): return "RPM"
+    if os.path.exists("/etc/debian_version"): return "DEB"
   else:
     print ("error: can't get this information...")
     sys.exit(2)  
