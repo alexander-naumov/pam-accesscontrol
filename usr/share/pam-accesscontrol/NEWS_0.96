@@ -4,11 +4,15 @@
 
 * No preconfigurations anymore.
 
-Up to version 0.95, pam-accesscontrol set itself up during 
-installation process. In some cases it were useful, but more 
-intellingent way is to let users configure it as they want of course. 
-That is what were added in version 0.96. Configuration should happen 
-now via new 'management tool' called /sbin/pam-accesscontrol.
+Up to version 0.95 pam-accesscontrol sets itself up during
+installation process. In some cases it was useful, but more
+intellingent way is to let users configure it as they want of course.
+That is what was added in version 0.96. Configuration should happen
+now via new management tool called /sbin/pam-accesscontrol.
+
+$ ls -la /sbin/pam-accesscontrol
+-r-x------ 1 root root 8841 Sep 10 18:15 /sbin/pam-accesscontrol
+
 
 It was also not the best idea to point some groups of services from 
 configuration file to some specific /etc/pam.d/* file. For example, 
@@ -19,27 +23,28 @@ managers, right? :) So, why we need to define some limited list of
 services? Second, how about unfamiliar display managers (they can be, 
 for example, still be not official released)?
 
-First fixed problem here: after installing next display/login 
-manager, reconfiguration of pam-accesscontrol is posible and it goes 
-in easy way. "Easy" is exactly what I would like to feel by using 
+After installing next display/login manager (or just some new server),
+reconfiguration of pam-accesscontrol is posible and it goes in easy
+way. "Easy" is exactly what I would like to feel by using
 pam-accesscontrol.
 
-Second fixed problem here: I think, user is smart enough to figure 
-out how PAM works and configure only services it need. Refusal of 
-autoconfiguration and adding management tool make it possible.
+I think, user is smart enough to figure out how PAM works and
+configure only needed services. Refusal of autoconfiguration and
+adding management tool make it possible.
 
 * SSH public key authentication support.
 
 Yes, we did it! Now it's possible to create SSH service for password- 
-or public key authentication :) By using ASK option the notification 
-window will also inform you about used authentication method: 
+OR public key authentication :) By using 'ask' option notification
+window will also inform X-session owner about used authentication
+method:
 SSHD-KEY ASK USER SOMEONE.
 
 * Support for primary groups is also there.
 
 getent(1) doesn't show user's primary group. That sad, and 
 unfortuantly pam-accesscontrol used it as a backend tool to get list 
-of groups. Used it up to version 0.95, but not anymore...
+of user's groups. Used it up to version 0.95, but not anymore...
 
 * Pam-python packages for CentOS/RedHat users.
 
