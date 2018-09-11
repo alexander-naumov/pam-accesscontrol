@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+chmod 500 /sbin/pam-accesscontrol
+exit 0
