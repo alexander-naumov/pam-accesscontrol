@@ -8,5 +8,5 @@ Build-Depends: debhelper (>= 7.0.50~), config-package-dev, cdbs
 Package: pam-accesscontrol
 Pre-Depends: coreutils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), python3, openssh-server, libpam-python
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.7), openssh-server, libpam-python, python3-pyqt5
 Description: PAM management system to control access to host.
