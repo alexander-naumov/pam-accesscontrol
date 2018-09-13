@@ -22,9 +22,9 @@
 import syslog, sys, os, re
 import subprocess as sp
 
-def is_there(logtype, host, login, sessions):
+def ssh_is_there(logtype, host, login, sessions):
   """
-  It checks for other current SSH sessions of the user.
+  It checks for other current user's SSH sessions.
   Function returns integer - number of already created sessions.
   """
   item = 0
@@ -79,13 +79,14 @@ def session_info(logtype):
   return LIST
 
 
-def ask_window_is_there(host, login):
+def ask_window_is_there(host, login, service):
   """
-  'loginctl list-sessions' shows new session for user X before user can answer via pam-accesscontrol's ask-window.
-  Until now I didn't found some better solution then just to check for this window (by parsing for all processes).
+  'loginctl list-sessions' shows new session for user X before user can answer via
+  pam-accesscontrol's ask-window. Until now I didn't found some better solution then
+  just to check for this window (by parsing for all processes).
   FIXME: looking for some better solution...
   """
-  pattern = "/usr/bin/python3 -Es /usr/share/pam-accesscontrol/windows.py ask " + host + " " + login
+  pattern = "/usr/share/pam-accesscontrol/windows.py ask " + host + " " + login + " " + service
   for i in sp.getoutput("ps aux").split("\n"):
       proc = re.search(pattern, i)
       if proc is not None:
@@ -94,6 +95,9 @@ def ask_window_is_there(host, login):
 
 
 def get_xauthority(name):
+  """
+  Look for XAUTHORITY value in /proc directroy.
+  """
   for proc in sp.getoutput("pgrep " +str(name)).split("\n"):
     if len(proc)>0:
       try:
@@ -114,31 +118,30 @@ def get_xauthority(name):
 
 if __name__ == '__main__':
   if (len(sys.argv) != 6):
-    print ("usage: " + sys.argv[0] + " [True | False] <HOST> <LOGIN> [ask | info | xorg] [OPTIONS]")
+    print ("usage: " + sys.argv[0] + " [True | False] HOST USER [ask | info | xorg] PAM-SERVICE")
     sys.exit(1)
 
   DEBUG = False
-  if sys.argv[1] == "True": DEBUG = True
-  if sys.argv[2]: rhost  = sys.argv[2]
-  if sys.argv[3]: rname  = sys.argv[3]
-  if sys.argv[4]: window = sys.argv[4]
-  if sys.argv[5]: auth   = sys.argv[5]
+  if sys.argv[1] in ['True', 'true', 'TRUE']: DEBUG = True
+  if sys.argv[2]: HOST   = sys.argv[2]
+  if sys.argv[3]: USER   = sys.argv[3]
+  if sys.argv[4]: WINDOW = sys.argv[4]
+  if sys.argv[5]: SERVICE= sys.argv[5]
 
-  if window == "xorg": logtype = "pam-accesscontrol(Xorg): "
-  else:                logtype = "pam-accesscontrol(" + auth + "): "
+  if WINDOW == "xorg": logtype = "pam-accesscontrol(Xorg): "
+  else:                logtype = "pam-accesscontrol(" + SERVICE + "): "
 
   if DEBUG:
-    syslog.syslog(logtype + "DEBUG   = " + str(DEBUG))
-    syslog.syslog(logtype + "HOST    = " + str(rhost))
-    syslog.syslog(logtype + "NAME    = " + str(rname))
-    syslog.syslog(logtype + "WINDOW  = " + str(window))
-    syslog.syslog(logtype + "OPTIONS = " + str(auth))
+    syslog.syslog(logtype + "HOST    = " + HOST)
+    syslog.syslog(logtype + "NAME    = " + USER)
+    syslog.syslog(logtype + "WINDOW  = " + WINDOW)
+    syslog.syslog(logtype + "SERVICE = " + SERVICE)
 
   sessions = session_info(logtype)
   if not sessions:
     syslog.syslog(logtype + "'loginctl' returns nothing...")
 
-  elif window == "xorg":
+  elif WINDOW == "xorg":
     if DEBUG: syslog.syslog(logtype + "XORG")
     for i in sessions:
       if i['Class'] == 'greeter':
@@ -149,14 +152,18 @@ if __name__ == '__main__':
 
         print (sp.call('export DISPLAY=' + str(i['Display']) +
                    ' && export XAUTHORITY=' + str(xauth) +
-                   ' && /usr/share/pam-accesscontrol/windows.py xorg ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
+                   ' && /usr/share/pam-accesscontrol/windows.py xorg ' + HOST + ' ' + USER + ' ' + SERVICE + ' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
         print ("0")
         sys.exit(0)
-  else:
-    n_conn = is_there(logtype, rhost, rname, sessions)
+
+  elif SERVICE in ['sshd', 'sshd-key']:
+    n_conn = ssh_is_there(logtype, HOST, USER, sessions)
     if DEBUG: syslog.syslog(logtype + "number of SSH sessions: "+str(n_conn))
 
+  else: # For not yet implemented services
+   n_conn = 1
+   if WINDOW == "info": n_conn = 0
 
   active = 0
   for i in sessions:
@@ -170,27 +177,27 @@ if __name__ == '__main__':
           syslog.syslog(logtype + "can't change user")
           sys.exit(2)
 
-        if ask_window_is_there(str(rhost), str(rname)):
+        if ask_window_is_there(HOST, USER, SERVICE):
           print ("1")
           sys.exit(1)
 
-        if window == "info":
+        if WINDOW == "info":
           if n_conn == 0:
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py info ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth) + ' &',
+                           ' && /usr/share/pam-accesscontrol/windows.py info ' + HOST + ' ' + USER + ' ' + SERVICE + ' &',
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
 
-        elif window == "ask":
+        elif WINDOW == "ask":
           if n_conn == 1:
             active = 1
             print (sp.call('export DISPLAY=' + str(i['Display']) +
-                           ' && /usr/share/pam-accesscontrol/windows.py ask ' + str(rhost) + ' ' + str(rname) + ' ' + str(auth),
+                           ' && /usr/share/pam-accesscontrol/windows.py ask ' + HOST + ' ' + USER + ' ' + SERVICE,
                            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
           else:
             print ("0")
             sys.exit(0)
 
-  if not active and window != "info":
-    syslog.syslog(logtype + "can't find owner of the X session and ask him => access granted")
+  if not active and WINDOW != "info":
+    syslog.syslog(logtype + "can't find owner of X-session and ask => access granted")
     print ("0")
     sys.exit(0)
