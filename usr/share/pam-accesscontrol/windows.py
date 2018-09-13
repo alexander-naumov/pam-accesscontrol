@@ -22,21 +22,43 @@
 import syslog, os, sys
 from PyQt5 import QtGui, QtWidgets
 
-class SSH_INFO(QtWidgets.QWidget):
-  def __init__(self, USER, HOST, AUTH):
-    super(SSH_INFO, self).__init__()
-    reply = QtWidgets.QMessageBox.information(self, 'SSH disconnection',
-            "SSH connection has been ended.\n\nUser: " + USER + "\nHost: " + HOST)
+class INFO(QtWidgets.QWidget):
+  def __init__(self, USER, HOST, SERVICE):
+    super(INFO, self).__init__()
 
-class SSH_ASK(QtWidgets.QWidget):
-  def __init__(self, USER, HOST, AUTH):
-    super(SSH_ASK, self).__init__()
-    if AUTH == "sshd-key": AUTH = "public-key authentication"
-    else:                  AUTH = "password authentication"
+    AUTH = None
+    if SERVICE == "sshd-key": AUTH = "SSH public-key authentication"
+    elif SERVICE == "sshd":   AUTH = "SSH password authentication"
 
-    reply = QtWidgets.QMessageBox.question(self, 'New SSH connection',
-            "New incoming SSH connection has been established.\nDo you want to allow it?\n\nUser: "
+    if SERVICE in ['sshd','sshd-key']: SERVICE = "SSH"
+    if AUTH:
+      reply = QtWidgets.QMessageBox.information(self, SERVICE + ': connection closed',
+            "Connection closed by remote host.\n\nUser: " + USER + "\nHost: " + HOST +
+            "\n\nAuthentication: " + AUTH)
+    else:
+      reply = QtWidgets.QMessageBox.information(self, SERVICE + ': connection closed',
+            "Connection closed by remote host.\n\nUser: " + USER + "\nHost: " + HOST)
+
+
+class ASK(QtWidgets.QWidget):
+  def __init__(self, USER, HOST, SERVICE):
+    super(ASK, self).__init__()
+
+    AUTH = None
+    if SERVICE == "sshd-key": AUTH = "SSH public-key authentication"
+    elif SERVICE == "sshd":   AUTH = "SSH password authentication"
+
+    if SERVICE in ['sshd','sshd-key']: SERVICE = "SSH"
+
+    if AUTH:
+      reply = QtWidgets.QMessageBox.question(self, 'New ' + SERVICE + ' connection',
+            "New incoming " + SERVICE + " connection has been established.\nDo you want to allow it?\n\nUser: "
             + USER + "\nHost: " + HOST + "\n\nAuthentication: "+ AUTH,
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+    else:
+      reply = QtWidgets.QMessageBox.question(self, 'New ' + SERVICE + ' connection',
+            "New incoming " + SERVICE + " connection has been established.\nDo you want to allow it?\n\nUser: "
+            + USER + "\nHost: " + HOST,
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
     if reply == QtWidgets.QMessageBox.Yes:
@@ -44,17 +66,18 @@ class SSH_ASK(QtWidgets.QWidget):
     else:
       sys.exit(1)
 
+
 class ACCESS_DENIED(QtWidgets.QWidget):
   def __init__(self, USER):
     super(ACCESS_DENIED, self).__init__()
     reply = QtWidgets.QMessageBox.information(self, 'ACCESS DENIED',
-            "Login not possible for user '" + str(USER) + "'.\nACCESS DENIED.")
+            "Login not possible for user '" + USER + "'.\nACCESS DENIED.")
 
 
 
 if __name__ == '__main__':
   if (len(sys.argv) != 5) or sys.argv[1] not in ["ask","info","xorg"]:
-    print ("usage: " + sys.argv[0] + " [ask | info | xorg] HOST USER [sshd | sshd-key | XDM]")
+    print ("usage: " + sys.argv[0] + " [ask | info | xorg] HOST USER PAM-SERVICE")
     sys.exit(1)
 
   if sys.argv[2] == "::1":
@@ -62,8 +85,11 @@ if __name__ == '__main__':
   else:
     HOST = sys.argv[2]
 
+  USER    = sys.argv[3]
+  SERVICE = sys.argv[4]
+
   app = QtWidgets.QApplication(sys.argv)
 
-  if   sys.argv[1] == "ask":    SSH_ASK(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
-  elif sys.argv[1] == "info":   SSH_INFO(str(sys.argv[3]), str(HOST), str(sys.argv[4]))
-  elif sys.argv[1] == "xorg":   ACCESS_DENIED(str(sys.argv[3]))
+  if   sys.argv[1] == "ask":    ASK(USER, HOST, SERVICE)
+  elif sys.argv[1] == "info":   INFO(USER, HOST, SERVICE)
+  elif sys.argv[1] == "xorg":   ACCESS_DENIED(USER)
