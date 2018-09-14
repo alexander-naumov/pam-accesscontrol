@@ -1,0 +1,75 @@
+Wanna help pam-accesscontrol? Great ;-)
+Here is the list what should be done first:
+
+Testing:
+-----------------------------------------------
+* Install some server with /etc/pam.d/* service
+  (ftp, etc...) and try to control it with
+  pam-accesscontrol
+
+* Display managers! Try to find not supported DMs
+  ('ACCESS DENIED' window is most interesting)
+
+
+Hacking:
+-----------------------------------------------
+* We want Plugins!
+  It would be great to find easy way for adding
+  pam-accesscontrol plugins. Something like
+  configuration options like:
+  sshd <PLUGIN> group ALL
+  In this case pam-accesscontrol will try to run
+  <PLUGIN> for all sshd connections.
+
+* Fix problem with GNOME Shell
+  Tested on CentOS. Get troble with notification
+  windows. It crashes. SELinux is disabled. There
+  is info in syslog. Need to find time to look at
+  this problem again. Be first ;-)
+
+* Fix problelm with GDM
+  Well... yes. GDM is special. Try to figure out
+  how to find XAUTHORITY value OR other good way
+  to show our notification window.
+  
+* Not only SSH windows
+  windows.py is DONE, notification.py should be
+  changed to provide the same functionality for
+  other services like for SSH:
+  1. no crashes ;-)
+  2. check number of connections
+  3. ask user for first connection
+  4. notify user about closing last connection
+
+* Close-window for EACH last connections
+  There is a logicall bug with notifiaction
+  window. It shows such window for last user's
+  connection *independently* of souce hosts.
+  For example, if I have 2 connections from
+  different hosts I will get one 'close
+  connection' window. But in fact, there are
+  2 different connections... It would be great
+  to be notifyed about EACH different
+  connection.
+
+* Networking!
+  pam-accesscontrol should be smart enough to
+  recognize sourse host/network (it's DONE by
+  PAM itself) and be able to be configurable
+  to control such control rules 
+
+* Fingerprint for HOSTs
+  IP addresses as a source for configuration
+  is great. But how about DHCP networks where
+  IP changes dynamically? Try to find way to
+  teach pam-accesscontrol to recognize host's
+  fingerprints.
+
+* That would be also great to be independent
+  from operating system. Try to find a way to
+  get OS related information from python
+  libraries and not by calling systemd-tools
+  like loginctl, etc... I'm pretty sure it's
+  possible. I would like to run
+  pam-accesscontrol on other UNIX-like OS like
+  FreeBSD or Solaris community-forks.
