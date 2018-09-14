@@ -18,61 +18,64 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import syslog, os, sys
-from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
-class INFO(QtWidgets.QWidget):
+class win(QWidget):
   def __init__(self, USER, HOST, SERVICE):
-    super(INFO, self).__init__()
+    super(win, self).__init__()
 
-    AUTH = None
-    if SERVICE == "sshd-key": AUTH = "SSH public-key authentication"
-    elif SERVICE == "sshd":   AUTH = "SSH password authentication"
+    self.AUTH = None
+    if SERVICE == "sshd-key": self.AUTH = "SSH public-key authentication"
+    elif SERVICE == "sshd":   self.AUTH = "SSH password authentication"
 
-    if SERVICE in ['sshd','sshd-key']: SERVICE = "SSH"
-    if AUTH:
-      reply = QtWidgets.QMessageBox.information(self, SERVICE + ': connection closed',
-            "Connection closed by remote host.\n\nUser: " + USER + "\nHost: " + HOST +
-            "\n\nAuthentication: " + AUTH)
+    if SERVICE in ['sshd','sshd-key']:
+      self.SERVICE = "SSH"
     else:
-      reply = QtWidgets.QMessageBox.information(self, SERVICE + ': connection closed',
-            "Connection closed by remote host.\n\nUser: " + USER + "\nHost: " + HOST)
+      self.SERVICE = SERVICE
+
+    self.w = QMessageBox()
+    self.w.setIconPixmap(QPixmap('/usr/share/pam-accesscontrol/img/lock.gif'))
+    icon_label = self.w.findChild(QLabel,"qt_msgboxex_icon_label")
+    movie = QMovie('/usr/share/pam-accesscontrol/img/lock.gif')
+    setattr(self.w,'icon_label',movie)
+    icon_label.setMovie(movie)
+    movie.start()
 
 
-class ASK(QtWidgets.QWidget):
-  def __init__(self, USER, HOST, SERVICE):
-    super(ASK, self).__init__()
+  def close(self):
+    self.TEXT = "Connection closed by remote host.\n\nUser: " + USER + "\nHost: " + HOST
+    if self.AUTH:
+      self.TEXT = self.TEXT + "\n\nAuthentication: "+ self.AUTH
 
-    AUTH = None
-    if SERVICE == "sshd-key": AUTH = "SSH public-key authentication"
-    elif SERVICE == "sshd":   AUTH = "SSH password authentication"
+    self.w.setWindowTitle(self.tr(self.SERVICE + ': connection closed'))
+    self.w.setText(self.TEXT)
+    self.w.exec_()
 
-    if SERVICE in ['sshd','sshd-key']: SERVICE = "SSH"
 
-    if AUTH:
-      reply = QtWidgets.QMessageBox.question(self, 'New ' + SERVICE + ' connection',
-            "New incoming " + SERVICE + " connection has been established.\nDo you want to allow it?\n\nUser: "
-            + USER + "\nHost: " + HOST + "\n\nAuthentication: "+ AUTH,
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-    else:
-      reply = QtWidgets.QMessageBox.question(self, 'New ' + SERVICE + ' connection',
-            "New incoming " + SERVICE + " connection has been established.\nDo you want to allow it?\n\nUser: "
-            + USER + "\nHost: " + HOST,
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+  def ask(self):
+    self.TEXT = "New incoming " + self.SERVICE + " connection has been established. " + \
+                "Do you want to allow it?\n\nUser: " + USER + "\nHost: " + HOST
+    if self.AUTH:
+      self.TEXT = self.TEXT + "\n\nAuthentication: "+ self.AUTH
 
-    if reply == QtWidgets.QMessageBox.Yes:
+    self.w.setWindowTitle(self.tr('New ' + self.SERVICE + ' connection'))
+    self.w.setText(self.TEXT)
+    self.w.setStandardButtons(QMessageBox.Yes  | QMessageBox.No)
+    self.w.setDefaultButton(QMessageBox.No)
+
+    if self.w.exec_() == QMessageBox.Yes:
       sys.exit(0)
     else:
       sys.exit(1)
 
 
-class ACCESS_DENIED(QtWidgets.QWidget):
-  def __init__(self, USER):
-    super(ACCESS_DENIED, self).__init__()
-    reply = QtWidgets.QMessageBox.information(self, 'ACCESS DENIED',
-            "Login not possible for user '" + USER + "'.\nACCESS DENIED.")
-
+  def xorg(self):
+    self.TEXT = "ACCESS DENIED\nLogin not possible for user '" + USER + "'"
+    self.w.setWindowTitle(self.tr('ACCESS DENIED'))
+    self.w.setText(self.TEXT)
+    self.w.exec_()
 
 
 if __name__ == '__main__':
@@ -88,8 +91,8 @@ if __name__ == '__main__':
   USER    = sys.argv[3]
   SERVICE = sys.argv[4]
 
-  app = QtWidgets.QApplication(sys.argv)
+  app = QApplication(sys.argv)
 
-  if   sys.argv[1] == "ask":    ASK(USER, HOST, SERVICE)
-  elif sys.argv[1] == "info":   INFO(USER, HOST, SERVICE)
-  elif sys.argv[1] == "xorg":   ACCESS_DENIED(USER)
+  if   sys.argv[1] == "ask":    win(USER, HOST, SERVICE).ask()
+  elif sys.argv[1] == "info":   win(USER, HOST, SERVICE).close()
+  elif sys.argv[1] == "xorg":   win(USER, HOST, SERVICE).xorg()
