@@ -3,6 +3,10 @@ Here is the list what should be done first:
 
 Testing:
 -----------------------------------------------
+* Try to find any problems by installing or
+  updating pam-accessconrol. Please use oficial
+  packages!
+
 * Install some server with /etc/pam.d/* service
   (ftp, etc...) and try to control it with
   pam-accesscontrol
@@ -10,9 +14,18 @@ Testing:
 * Display managers! Try to find not supported DMs
   ('ACCESS DENIED' window is most interesting)
 
+* Try to circumvent pam-accesscontrol in any way.
+  Don't forget to report about it :)
+
 
 Hacking:
 -----------------------------------------------
+* Packages for Arch and Gentoo Linux
+  It's possibe to build Arch-packages in OBS.
+  Also Gentoo and other source based distro...
+  that could be an install script or something
+  like that.
+
 * We want Plugins!
   It would be great to find easy way for adding
   pam-accesscontrol plugins. Something like
@@ -65,7 +78,8 @@ Hacking:
   teach pam-accesscontrol to recognize host's
   fingerprints.
 
-* That would be also great to be independent
+* Use PYTHON only!
+  That would be also great to be independent
   from operating system. Try to find a way to
   get OS related information from python
   libraries and not by calling systemd-tools
