@@ -144,9 +144,16 @@ if __name__ == '__main__':
   elif WINDOW == "xorg":
     if DEBUG: syslog.syslog(logtype + "XORG")
     for i in sessions:
-      if i['Class'] == 'greeter':
+      if i['Class'] == 'greeter' or i['Service'] == 'slim': # FIXME: do we really need Class=greeter check? List for 'Service'?
         if DEBUG: syslog.syslog(logtype + "name = " + str(i['Name']))
-        xauth = get_xauthority(str(i['Name']))
+
+        if i['Service'] == 'slim':
+          xauth = "/var/run/slim.auth"
+        elif i['Service'] == 'lightdm':
+          xauth = "/var/lib/lightdm/.Xauthority"
+        else:
+          xauth = get_xauthority(str(i['Name']))
+
         if DEBUG: syslog.syslog(logtype + "XAUTHORITY = " + str(xauth))
         if DEBUG: syslog.syslog(logtype + "DISPLAY = " + str(i['Display']))
 
