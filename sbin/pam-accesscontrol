@@ -21,7 +21,7 @@
 import subprocess as sp
 import os, sys, re, glob, shutil, platform
 
-VERSION = "v0.96 Beta"
+VERSION = "v0.97 Beta"
 PATH_PAM = "/etc/pam.d/"
 
 def printf(clr, string):
@@ -29,6 +29,7 @@ def printf(clr, string):
   elif clr == "red":   print('\x1b[0;31;48m' + string + '\x1b[0m', end='')
   elif clr == "GREEN": print('\x1b[0;30;42m' + string + '\x1b[0m')
   elif clr == "green": print('\x1b[0;32;48m' + string + '\x1b[0m', end='')
+  elif clr == "orange":print('\x1b[0;33;40m' + string + '\x1b[0m', end='')
   else:                print(string, end='')
   print("-------------------------------------------------------")
 
@@ -163,27 +164,31 @@ def configure(pam):
   print("ok")
 
 
-def show_config():
+def show_config(show=False):
   """
   It parses pam files and shows pam-accesscontrol configuration in it.
 
-  Input : VOID
-  Output: VOID
+  Input : BOOL. If 'show' sets to True, it uses stdout.
+  Output: LIST of correctly configured /etc/pam.d/* services.
   """
   count = 0
-  for file in pam_list("absolute"):
-    print ("-----------------------------------------------------------------------------------------------------------")
-    with open(file, 'r') as fd:
+  configured = []
+  for FILE in pam_list("absolute"):
+    if show==True: print ("-----------------------------------------------------------------------------------------------------------")
+    with open(FILE, 'r') as fd:
       count = 0
       for line in fd:
         if re.search("accesscontrol",line):
           if count == 0:
-            print (file, "\t\t\t\t", line, end="")
+            if show==True: print (FILE, "\t\t\t\t", line, end="")
           else:
-            print ("\t\t\t\t\t\t", line, end="")
+            if show==True: print ("\t\t\t\t\t\t", line, end="")
           count = count + 1
+          if not re.search('#', line):
+            configured.append(FILE)
     if count == 0:
-      print (file)
+      if show==True: print (FILE)
+  return list(dict(zip(configured,configured)).values())
 
 
 def check_user_config(files):
@@ -193,6 +198,9 @@ def check_user_config(files):
   Input:  LIST of STRINGs, list of files to check
   Output: VOID
   """
+  if len(files) == 0:
+    files = ['/etc/pam-accesscontrol.d/pam-accesscontrol.conf']
+
   for FILE in files:
     if not os.path.exists(FILE):
       print ("Dammit! I can't find this file: "+ FILE)
@@ -226,6 +234,12 @@ def check_user_config(files):
           elif rule.split(" ")[0] not in [pam.upper() for pam in pam_list("relative") + ["sshd-key"]]:
             printf ("red", "Broken rule, unknown PAM service: \n" + rule)
 
+          elif rule.split(" ")[0] not in list(map(lambda x: x[11:].upper(), show_config(False))):
+            printf ("orange", "Waring: PAM service is used in user's config,\n" +
+                              "but it's not configured in /etc/pam.d/* file.\n" +
+                              "To fix it, use: pam-accesscontrol pam-configure " +
+                              str(rule.split(" ")[0].lower()) + "\n" + rule)
+
           elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER']:
             printf ("red", "Broken rule, second parameter is wrong: \n" + rule)
 
@@ -238,6 +252,20 @@ def check_user_config(files):
     except OSError as err:
       print("OS error: {0}".format(err))
       sys.exit(2)
+
+def test_window():
+    """
+    It calls list of window-tests.
+
+    Input: VOID
+    Output: VOID
+    """
+    for test in ['ask','info','xorg']:
+      try:
+        print(sp.call('/usr/share/pam-accesscontrol/windows.py ' + test + ' HOST USER PAM-SERVICE',
+            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
+      except OSError as err:
+        print("Something goes wrong: {0}".format(err))
 
 
 def print_format_table():
@@ -262,11 +290,12 @@ if __name__ == '__main__':
     for i in pam_list("relative"):
       print (i)
 
-  elif len(sys.argv) == 2 and sys.argv[1] == "show-pam-config":  show_config()
+  elif len(sys.argv) == 2 and sys.argv[1] == "show-pam-config":  show_config(True)
   elif len(sys.argv)  > 2 and sys.argv[1] == "show-pam-info":    show_info(sys.argv[2:])
   elif len(sys.argv)  > 2 and sys.argv[1] == "pam-configure":    configure(sys.argv[2:])
   elif len(sys.argv)  > 2 and sys.argv[1] == "make-pam-clean":   cleaning(sys.argv[2:])
   elif len(sys.argv) >= 2 and sys.argv[1] == "check-my-config":  check_user_config(sys.argv[2:])
   elif len(sys.argv) == 2 and sys.argv[1] == "color-table":      print_format_table()
+  elif len(sys.argv) == 2 and sys.argv[1] == "test-window":      test_window()
   else: usage()
   sys.exit()
