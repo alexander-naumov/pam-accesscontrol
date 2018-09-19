@@ -401,7 +401,6 @@ def pam_sm_authenticate(pamh, flags, argv):
   syslog.syslog(logtype + "==============================================")
   syslog.syslog(logtype + "authentication")
 
-  pamh.authtok
   try:
     syslog.syslog(logtype + "remote user: "+ str(pamh.get_user()))
     syslog.syslog(logtype + "remote host: "+ str(pamh.rhost))
@@ -410,8 +409,10 @@ def pam_sm_authenticate(pamh, flags, argv):
     return pamh.PAM_AUTH_ERR
 
   if str(pamh.service) == "sshd":
-    global sshkey
-    sshkey = "password"
+    try:
+      os.mknod("/tmp/session-" + str(pamh.pamh))
+    except:
+      syslog.syslog(logtype + "can't create new file in /tmp...")
 
   return main(str(pamh.service), logtype, pamh, flags, argv)
 
@@ -436,12 +437,12 @@ def pam_sm_open_session(pamh, flags, argv):
   syslog.syslog(logtype + "open new session")
 
   if str(pamh.service) == "sshd":
-    global sshkey
-    if sshkey == "unknown":
-      sshkey  = "sshkey"
-      SERVICE = "sshd-key"
-    else:
+    if os.path.isfile("/tmp/session-" + str(pamh.pamh)):
       SERVICE = "sshd"
+      os.remove("/tmp/session-" + str(pamh.pamh))
+    else:
+      SERVICE = "sshd-key"
+    syslog.syslog(logtype + SERVICE)
     return main(SERVICE, logtype, pamh, flags, argv)
 
   elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
