@@ -62,11 +62,12 @@ def distribution():
   """
   if platform.linux_distribution()[0] in ['Ubuntu', 'Debian']:
     return 'DEB'
-  if platform.linux_distribution()[0] in ['CentOS Linux', 'openSUSE', 'SuSE']:
+  if platform.linux_distribution()[0] in ['CentOS Linux', 'Fedora', 'openSUSE', 'SuSE']:
     return 'RPM'
   if len(platform.linux_distribution()[0]) == 0:
     if os.path.exists("/etc/SUSE-brand"): return "RPM"
     if os.path.exists("/etc/redhat-release"): return "RPM"
+    if os.path.exists("/etc/fedora-release"): return "RPM"
     if os.path.exists("/etc/debian_version"): return "DEB"
   else:
     print ("error: can't get this information...")
@@ -86,6 +87,7 @@ def show_info(pam):
       if distribution() == "DEB":
         CMD = "dpkg-query -W -f='${Description}\n' $(dpkg -S /etc/pam.d/" + p + " | cut -d':' -f1)"
       if distribution() == "RPM":
+        print("RPM")
         CMD = "rpm -q --queryformat '%{Description}\n' $(rpm -qf /etc/pam.d/" + p + ")"
       print ("-----------------------------------------------------------------------")
       print ("Information about " + PATH_PAM + p + ": ")
