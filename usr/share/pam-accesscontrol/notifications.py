@@ -143,26 +143,33 @@ if __name__ == '__main__':
 
   elif WINDOW == "xorg":
     if DEBUG: syslog.syslog(logtype + "XORG")
-    for i in sessions:
-      if i['Class'] == 'greeter' or i['Service'] == 'slim': # FIXME: do we really need Class=greeter check? List for 'Service'?
-        if DEBUG: syslog.syslog(logtype + "name = " + str(i['Name']))
+    DISPLAY = ":0"
 
-        if i['Service'] == 'slim':
-          xauth = "/var/run/slim.auth"
-        elif i['Service'] == 'lightdm':
-          xauth = "/var/lib/lightdm/.Xauthority"
-        else:
-          xauth = get_xauthority(str(i['Name']))
+    if SERVICE=='lxdm':
+      xauth = '/var/run/lxdm/lxdm-'+DISPLAY+'.auth'
+    else:
+      for i in sessions:
+        if i['Class'] == 'greeter' or i['Service'] == 'slim':
+          if DEBUG: syslog.syslog(logtype + "name = " + str(i['Name']))
 
-        if DEBUG: syslog.syslog(logtype + "XAUTHORITY = " + str(xauth))
-        if DEBUG: syslog.syslog(logtype + "DISPLAY = " + str(i['Display']))
+          if i['Service'] == 'slim':
+            xauth = "/var/run/slim.auth"
+          elif i['Service'] == 'lightdm':
+            xauth = "/var/lib/lightdm/.Xauthority"
+          else:
+            xauth = get_xauthority(str(i['Name']))
 
-        print (sp.call('export DISPLAY=' + str(i['Display']) +
+          DISPLAY = str(i['Display'])
+
+    if DEBUG: syslog.syslog(logtype + "XAUTHORITY = " + str(xauth))
+    if DEBUG: syslog.syslog(logtype + "DISPLAY = " + DISPLAY)
+
+    print (sp.call('export DISPLAY=' + DISPLAY +
                    ' && export XAUTHORITY=' + str(xauth) +
-                   ' && /usr/share/pam-accesscontrol/windows.py xorg ' + HOST + ' ' + USER + ' ' + SERVICE + ' &',
+                   ' && /usr/share/pam-accesscontrol/windows.py xorg '+HOST+' '+USER+' '+SERVICE+' &',
                      stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True))
-        print ("0")
-        sys.exit(0)
+    print ("0")
+    sys.exit(0)
 
   elif SERVICE in ['sshd', 'sshd-key']:
     n_conn = ssh_is_there(logtype, HOST, USER, sessions)
