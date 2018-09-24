@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
-chmod 500 /sbin/pam-accesscontrol
+chmod 500 /usr/sbin/pam-accesscontrol
 exit 0
