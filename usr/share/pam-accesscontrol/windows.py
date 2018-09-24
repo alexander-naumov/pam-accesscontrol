@@ -72,7 +72,9 @@ class win(QWidget):
 
 
   def xorg(self):
-    self.TEXT = "ACCESS DENIED\nLogin not possible for user '" + USER + "'"
+    self.w.setGeometry(100, 50, 100, 100)
+
+    self.TEXT = "ACCESS DENIED\n\n\nLogin not possible for user '" + USER + "'"
     self.w.setWindowTitle(self.tr('ACCESS DENIED'))
     self.w.setText(self.TEXT)
     self.w.exec_()
