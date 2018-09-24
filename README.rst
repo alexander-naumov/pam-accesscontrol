@@ -29,9 +29,9 @@ openSUSE Leap 15.1, XFCE, SSH password authentication:
         :width: 100%
         :align: center
 
-Ubuntu 18.04, Unity, SSH pub-key authentication:
-    .. image:: https://paste.opensuse.org/images/74975662.jpg
-        :alt: Ubuntu
+CentOS 7, GNOME, SSH pub-key authentication:
+    .. image:: https://paste.opensuse.org/images/12149426.jpg
+        :alt: CentOS
         :width: 100%
         :align: center
 
