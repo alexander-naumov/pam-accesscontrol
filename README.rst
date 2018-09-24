@@ -35,6 +35,12 @@ Ubuntu 18.04, Unity, SSH pub-key authentication:
         :width: 100%
         :align: center
 
+Debian 9.5, slim (Simple Login Manager):
+    .. image:: https://paste.opensuse.org/images/44154633.jpg
+        :alt: Debian
+        :width: 100%
+        :align: center
+
 Contributing
 ------------
 You can submit or ask for improvements using github's Pull Requests or Issues.
