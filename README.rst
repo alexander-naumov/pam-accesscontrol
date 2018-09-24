@@ -18,7 +18,7 @@ We provide packages for many different GNU/Linux systems to make it easy to inst
 Screenshots
 -----------
 Kubuntu 18.04, sddm:
-    .. image:: https://paste.opensuse.org/images/5250347.jpg
+    .. image:: https://paste.opensuse.org/images/61202325.jpg
         :alt: sddm is CLOSEd for specific user
         :width: 100%
         :align: center
