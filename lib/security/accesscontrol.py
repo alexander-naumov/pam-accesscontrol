@@ -271,7 +271,7 @@ def check_users_group_list(group, login, DEBUG):
     grouplist = (c_uint * int(ngrouplist.value))()
     ct = getgrouplist(user.pw_name, user.pw_gid, byref(grouplist), byref(ngrouplist))
 
-  for i in xrange(0, ct):
+  for i in range(0, ct):
     gid = grouplist[i]
     if (group == grp.getgrgid(gid).gr_name):
       if DEBUG: log("user '" + str(login) + "' is a member of group '" + str(group) + "'")
