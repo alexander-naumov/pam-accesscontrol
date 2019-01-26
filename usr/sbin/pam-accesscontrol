@@ -264,7 +264,7 @@ def check_user_config(files):
                  "Notification windows (option 'ASK') could be blocked.\n" +
                  "Write acces to the /var/log could be also blocked.\n" +
                  "In this case access will be not possible.\n")
-      except:
+      except OSError as err:
         print("Can't get info about SELinux status...")
 
 
