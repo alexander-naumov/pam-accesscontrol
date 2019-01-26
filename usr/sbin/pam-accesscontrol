@@ -239,7 +239,7 @@ def check_user_config(files):
             printf ("red", "Broken rule, unknown PAM service: \n" + rule)
 
           elif rule.split(" ")[0] not in list(map(lambda x: x[11:].upper(), show_config(False))) + ["SSHD-KEY"]:
-            printf ("orange", "Waring: PAM service is in user's config,\n" +
+            printf ("orange", "Warning: PAM service is in user's config,\n" +
                               "but it's not configured in /etc/pam.d/* file.\n" +
                               "To fix it, use: pam-accesscontrol pam-configure " +
                               str(rule.split(" ")[0].lower()) + "\n\n" + rule)
