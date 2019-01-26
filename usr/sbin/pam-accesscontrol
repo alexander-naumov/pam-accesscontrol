@@ -239,7 +239,7 @@ def check_user_config(files):
             printf ("red", "Broken rule, unknown PAM service: \n" + rule)
 
           elif rule.split(" ")[0] not in list(map(lambda x: x[11:].upper(), show_config(False))) + ["SSHD-KEY"]:
-            printf ("orange", "Waring: PAM service is in user's config,\n" +
+            printf ("orange", "Warning: PAM service is in user's config,\n" +
                               "but it's not configured in /etc/pam.d/* file.\n" +
                               "To fix it, use: pam-accesscontrol pam-configure " +
                               str(rule.split(" ")[0].lower()) + "\n\n" + rule)
@@ -264,7 +264,7 @@ def check_user_config(files):
                  "Notification windows (option 'ASK') could be blocked.\n" +
                  "Write acces to the /var/log could be also blocked.\n" +
                  "In this case access will be not possible.\n")
-      except:
+      except OSError as err:
         print("Can't get info about SELinux status...")
 
 
@@ -291,7 +291,7 @@ def print_format_table():
     Output: VOID
     """
     for style in range(8):
-        for fg in range(30,38):
+        for fg in range(30, 38):
             s1 = ''
             for bg in range(40,48):
                 format = ';'.join([str(style), str(fg), str(bg)])
