@@ -50,7 +50,7 @@ If you're going to send a patch, please make sure that dev `OBS`_ project is sti
 Credits
 -------
 
-Copyright (c) 2017-2018 Alexander Naumov (alexander_naumov@opensuse.org).
+Copyright (c) 2017-2019 Alexander Naumov (alexander_naumov@opensuse.org).
 
 Licensed under GNU GPLv3 (see `LICENSE`_ file).
 
