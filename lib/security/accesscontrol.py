@@ -133,7 +133,7 @@ def get_default():
   DEFAULT = 'CLOSE'
   PASS    = False
 
-  for line in configuration("access.conf"):
+  for line in configuration("pam-accesscontrol.conf"):
     if line[:5] == "PASS:":
       PASS = ids(line.split(":")[1])
 
@@ -160,7 +160,7 @@ def config_parser(SERVICE, DEBUG):
   defined rules. Broken rules will be just ignored (for security reason).
   """
   rules = []
-  for rule in [c for c in configuration("access.conf") if len(c) > 5]:
+  for rule in [c for c in configuration("pam-accesscontrol.conf") if len(c) > 5]:
     if DEBUG: log("rule: " + str(rule))
     dic = {}
     if len(rule.split(" ")) != 4:
@@ -367,7 +367,7 @@ def send_mail(pamh):
       ADDR = ADDR + ids(rule.split(" ")[1])
       ADDR = dict(zip(ADDR, ADDR)).values()
 
-  if len(ADDR) > 0:
+  if ADDR:
     toaddr = ", ".join(ADDR)
     msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddr, subject))
     msg = msg + "Security notification\n\nUser: " + pamh.get_user()
@@ -375,7 +375,7 @@ def send_mail(pamh):
     log("can't send mail... no recipient mail address found.")
     return
 
-  if (not server):
+  if not server:
     log("can't send mail... MTA IP is not found.")
     return
 
