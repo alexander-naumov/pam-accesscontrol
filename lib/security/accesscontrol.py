@@ -372,15 +372,15 @@ def send_mail(pamh):
     msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddr, subject))
     msg = msg + "Security notification\n\nUser: " + pamh.get_user()
   else:
-    log("can't send mail... no mail address found.")
+    log("can't send mail... no recipient mail address found.")
     return
 
   if (not server):
-    log("can't send mail... mail server IP is not found.")
+    log("can't send mail... MTA IP is not found.")
     return
 
   if len(toaddr)<7:
-    log("can't send mail... bad resipient mail address.")
+    log("can't send mail... bad recipient mail address.")
     return
 
   try:
@@ -388,9 +388,9 @@ def send_mail(pamh):
     #server.set_debuglevel(1)
     server.sendmail(fromaddr, toaddr, msg)
     server.quit()
-    log("sending notification mail to: " + toaddr)
+    log("send notification mail to: " + toaddr)
   except Exception, e:
-    log("can't send mail... mail server error: " + str(e))
+    log("can't send mail... MTA error: " + str(e))
 
 
 def main(SERVICE, pamh, flags, argv):
