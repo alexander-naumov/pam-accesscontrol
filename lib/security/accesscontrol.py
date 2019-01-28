@@ -96,21 +96,18 @@ def not_upper_last_element(config):
   return conf
 
 
-def configuration():
+def configuration(PATH):
   """
-  Reading rules list from the config files.
+  Reading configuration from the config file.
   """
-  conf_files = sorted(glob.glob('/etc/pam-accesscontrol.d/*.conf'))
   all_conf = []
-  if conf_files:
-    for cur_file in conf_files:
-      try:
-        with open(cur_file, 'r') as fd:
-          conf = fd.read().split("\n")
-          conf = not_upper_last_element(conf)
-          all_conf = all_conf + conf
-      except:
-        log("can't open file: " + cur_file)
+  try:
+    with open("/etc/pam-accesscontrol.d/" + PATH, 'r') as fd:
+      conf = fd.read().split("\n")
+      conf = not_upper_last_element(conf)
+      all_conf = all_conf + conf
+  except:
+    log("can't open/read file: " + PATH)
   #log("config: " + str(all_conf))
   return all_conf
 
@@ -136,7 +133,7 @@ def get_default():
   DEFAULT = 'CLOSE'
   PASS    = False
 
-  for line in configuration():
+  for line in configuration("access.conf"):
     if line[:5] == "PASS:":
       PASS = ids(line.split(":")[1])
 
@@ -163,7 +160,7 @@ def config_parser(SERVICE, DEBUG):
   defined rules. Broken rules will be just ignored (for security reason).
   """
   rules = []
-  for rule in [c for c in configuration() if len(c) > 5]:
+  for rule in [c for c in configuration("access.conf") if len(c) > 5]:
     if DEBUG: log("rule: " + str(rule))
     dic = {}
     if len(rule.split(" ")) != 4:
@@ -271,7 +268,7 @@ def check_users_group_list(group, login, DEBUG):
     grouplist = (c_uint * int(ngrouplist.value))()
     ct = getgrouplist(user.pw_name, user.pw_gid, byref(grouplist), byref(ngrouplist))
 
-  for i in range(0, ct):
+  for i in xrange(0, ct):
     gid = grouplist[i]
     if (group == grp.getgrgid(gid).gr_name):
       if DEBUG: log("user '" + str(login) + "' is a member of group '" + str(group) + "'")
@@ -345,6 +342,30 @@ def allow(SERVICE, host, login, DEFAULT, DEBUG):
     else:                               return "CLOSE"
   elif login in access['OPEN']:         return "OPEN"
   else:                                 return DEFAULT
+
+
+def send_mail(pamh):
+  """
+  The idea is to find email in the config file and send notification.
+  """
+  import smtplib
+
+  conf = configuration("mail.conf")
+  for rule in conf:
+    if rule.split(" ")[0] == str(pamh.service).upper():
+        log("sending notification mail to: " + str(', '.join(ids(rule.split(" ")[1]))))
+
+        subject  = '[PAM-ACCESSCONTROL] Host ' + pamh.rhost + ' | Service ' + pamh.service
+        fromaddr = 'pam-accesscontrol@localhost'
+        toaddrs  = str(', '.join(ids(rule.split(" ")[1])))
+
+        msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddrs, subject))
+        msg = msg + "Security notification\n\nUser: " + pamh.get_user()
+
+        server = smtplib.SMTP('192.168.2.1')
+        #server.set_debuglevel(1)
+        server.sendmail(fromaddr, toaddrs, msg)
+        server.quit()
 
 
 def main(SERVICE, pamh, flags, argv):
@@ -463,7 +484,11 @@ def pam_sm_open_session(pamh, flags, argv):
     else:
       SERVICE = "sshd-key"
     log(SERVICE)
-    return main(SERVICE, pamh, flags, argv)
+
+    state = main(SERVICE, pamh, flags, argv)
+    if state == 0: send_mail(pamh)
+    return state
+
 
   elif str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
     # We check XDM's rules on the 'auth' step.
