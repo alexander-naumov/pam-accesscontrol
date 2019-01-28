@@ -346,26 +346,51 @@ def allow(SERVICE, host, login, DEFAULT, DEBUG):
 
 def send_mail(pamh):
   """
-  The idea is to find email in the config file and send notification.
+  The idea is to find MTA IP and email in the config file and send notification.
+
+  Input: pamh object
+  Output: VOID
   """
   import smtplib
+  server = None
+  ADDR   = []
 
-  conf = configuration("mail.conf")
-  for rule in conf:
+  subject  = '[PAM-ACCESSCONTROL] Host ' + pamh.rhost + ' | Service ' + pamh.service
+  fromaddr = 'pam-accesscontrol@localhost'
+
+  for rule in configuration("mail.conf"):
+    if rule[0:7] == "SERVER:":
+      server = rule[7:]
+      log("MTA IP: " + str(server))
+
     if rule.split(" ")[0] == str(pamh.service).upper():
-        log("sending notification mail to: " + str(', '.join(ids(rule.split(" ")[1]))))
+      ADDR = ADDR + ids(rule.split(" ")[1])
+      ADDR = dict(zip(ADDR, ADDR)).values()
 
-        subject  = '[PAM-ACCESSCONTROL] Host ' + pamh.rhost + ' | Service ' + pamh.service
-        fromaddr = 'pam-accesscontrol@localhost'
-        toaddrs  = str(', '.join(ids(rule.split(" ")[1])))
+  if len(ADDR) > 0:
+    toaddr = ", ".join(ADDR)
+    msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddr, subject))
+    msg = msg + "Security notification\n\nUser: " + pamh.get_user()
+  else:
+    log("can't send mail... no mail address found.")
+    return
 
-        msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddrs, subject))
-        msg = msg + "Security notification\n\nUser: " + pamh.get_user()
+  if (not server):
+    log("can't send mail... mail server IP is not found.")
+    return
 
-        server = smtplib.SMTP('192.168.2.1')
-        #server.set_debuglevel(1)
-        server.sendmail(fromaddr, toaddrs, msg)
-        server.quit()
+  if len(toaddr)<7:
+    log("can't send mail... bad resipient mail address.")
+    return
+
+  try:
+    server = smtplib.SMTP(server)
+    #server.set_debuglevel(1)
+    server.sendmail(fromaddr, toaddr, msg)
+    server.quit()
+    log("sending notification mail to: " + toaddr)
+  except Exception, e:
+    log("can't send mail... mail server error: " + str(e))
 
 
 def main(SERVICE, pamh, flags, argv):
