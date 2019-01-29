@@ -310,7 +310,7 @@ def check(access, i, rules, login, DEBUG):
   return access
 
 
-def allow(SERVICE, host, login, DEFAULT, DEBUG):
+def allow(SERVICE, login, DEFAULT, DEBUG):
   access = {"OPEN":[], "ASK":[], "CLOSE":[], "NUMBER":[]}
   ret = None
 
@@ -410,7 +410,7 @@ def main(SERVICE, pamh, flags, argv):
     log("something goes wrong... no info about remote connection")
     return e.pam_result
 
-  mode = allow(SERVICE, rhost, user, DEFAULT, DEBUG)
+  mode = allow(SERVICE, user, DEFAULT, DEBUG)
   if DEBUG: log("main got from allow: "+str(mode))
 
   if mode == "ASK":
@@ -419,7 +419,7 @@ def main(SERVICE, pamh, flags, argv):
     if DEBUG: log("[0->Yes; 1->No] RET = " + str(ret))
     try:
       if int(ret) == 0:
-        if allow(SERVICE, rhost, user, DEFAULT, False) == "ASK":
+        if allow(SERVICE, user, DEFAULT, False) == "ASK":
           create_log(SERVICE, rhost, user, mode, "creating new session")
           log("access granted")
           return pamh.PAM_SUCCESS
