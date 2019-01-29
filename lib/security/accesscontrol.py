@@ -66,7 +66,7 @@ def check_log(SERVICE, rhost, user):
       L = [L for L in l.split(" ") if len(L)>0 and re.search('[a-zA-Z]', L)]
       if L[2] == str(user + "@" + rhost):
         if L[4] in ["new", "granted"]:
-          log("closing session - user:" + str(user) + " host:"+str(rhost))
+          #log("closing session - user:" + str(user) + " host:"+str(rhost))
           create_log(SERVICE, rhost, user, L[1], "closing session")
           if L[1] == "ASK":
             return 1
@@ -145,10 +145,10 @@ def get_default():
       else:
         log("default: CLOSE")
 
-    if line[:6] == "DEBUG:":  DEBUG = line.split(":")[1]
-
-  if DEBUG == 'TRUE': DEBUG = True
-  else:               DEBUG = False
+    if line[:6] == "DEBUG:":
+      DEBUG = line.split(":")[1]
+      if DEBUG.lower() == 'true': DEBUG = True
+      else:                       DEBUG = False
 
   if DEBUG: log("default access rule: " + DEFAULT)
   return DEFAULT, DEBUG, PASS
@@ -351,6 +351,9 @@ def send_mail(pamh):
   Input: pamh object
   Output: VOID
   """
+  if not os.path.exists("/etc/pam-accesscontrol.d/mail-notification.conf"):
+    return
+
   import smtplib
   server = None
   ADDR   = []
@@ -401,8 +404,6 @@ def main(SERVICE, pamh, flags, argv):
   """
 
   DEFAULT, DEBUG, PASS = get_default()
-  log("DEBUG is set to " + str(DEBUG))
-
   try:
     user = pamh.get_user()
     rhost = pamh.rhost
@@ -470,6 +471,7 @@ def pam_sm_authenticate(pamh, flags, argv):
     except:
       log("can't create new file in /tmp...")
 
+
     DEFAULT, DEBUG, PASS = get_default()
     if PASS and pamh.get_user() in [P.lower() for P in PASS]:
       p = pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "Password: ")
@@ -482,7 +484,6 @@ def pam_sm_authenticate(pamh, flags, argv):
 def pam_sm_close_session(pamh, flags, argv):
   global log_prefix
   log_prefix = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
-
   log("closing session")
 
   if not check_log("sshd", str(pamh.rhost), str(pamh.get_user())):
@@ -492,6 +493,7 @@ def pam_sm_close_session(pamh, flags, argv):
     if DEBUG: log("SHOW ME WINDOW")
     dialog(DEBUG, str(pamh.rhost), str(pamh.get_user()), "info", str(pamh.service))
 
+  log("==============================================")
   return pamh.PAM_SUCCESS
 
 
@@ -512,6 +514,7 @@ def pam_sm_open_session(pamh, flags, argv):
 
     state = main(SERVICE, pamh, flags, argv)
     if state == 0: send_mail(pamh)
+    log("==============================================")
     return state
 
 
