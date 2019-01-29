@@ -392,8 +392,8 @@ def send_mail(pamh):
     server.sendmail(fromaddr, toaddr, msg)
     server.quit()
     log("send notification mail to: " + toaddr)
-  except Exception, e:
-    log("can't send mail... MTA error: " + str(e))
+  except Exception:
+    log("can't send mail... MTA error: " + str(Exception))
 
 
 def main(SERVICE, pamh, flags, argv):
@@ -407,9 +407,9 @@ def main(SERVICE, pamh, flags, argv):
   try:
     user = pamh.get_user()
     rhost = pamh.rhost
-  except pamh.exception, e:
+  except pamh.exception:
     log("something goes wrong... no info about remote connection")
-    return e.pam_result
+    return pamh.exception.pam_result
 
   mode = allow(SERVICE, user, DEFAULT, DEBUG)
   if DEBUG: log("main got from allow: "+str(mode))
@@ -461,7 +461,7 @@ def pam_sm_authenticate(pamh, flags, argv):
   try:
     log("remote user: "+ str(pamh.get_user()))
     log("remote host: "+ str(pamh.rhost))
-  except pamh.exception, e:
+  except pamh.exception:
     log("something goes wrong... no info about remote connection")
     return pamh.PAM_AUTH_ERR
 
