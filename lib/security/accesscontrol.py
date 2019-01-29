@@ -358,7 +358,7 @@ def send_mail(pamh):
   subject  = '[PAM-ACCESSCONTROL] Host ' + pamh.rhost + ' | Service ' + pamh.service
   fromaddr = 'pam-accesscontrol@localhost'
 
-  for rule in configuration("mail.conf"):
+  for rule in configuration("mail-notification.conf"):
     if rule[0:7] == "SERVER:":
       server = rule[7:]
       log("MTA IP: " + str(server))
