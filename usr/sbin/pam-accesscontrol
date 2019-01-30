@@ -21,7 +21,7 @@
 import subprocess as sp
 import os, sys, re, glob, shutil, platform
 
-VERSION = "v0.97 Beta"
+VERSION = "v0.97"
 PATH_PAM = "/etc/pam.d/"
 
 def printf(clr, string):
@@ -87,7 +87,6 @@ def show_info(pam):
       if distribution() == "DEB":
         CMD = "dpkg-query -W -f='${Description}\n' $(dpkg -S /etc/pam.d/" + p + " | cut -d':' -f1)"
       if distribution() == "RPM":
-        print("RPM")
         CMD = "rpm -q --queryformat '%{Description}\n' $(rpm -qf /etc/pam.d/" + p + ")"
       print ("-----------------------------------------------------------------------")
       print ("Information about " + PATH_PAM + p + ": ")
@@ -107,11 +106,11 @@ def pam_list(type):
     for i in glob.glob(PATH_PAM + "*"):
       LIST.append(i[11:])
     return LIST
-  else:
-    return glob.glob(PATH_PAM + "*")
+
+  return glob.glob(PATH_PAM + "*")
 
 
-def cleaning(pam):
+def cleaning(pam, mode="verbose"):
   """
   It removes information about pam-accesscontrol configuration from pam files.
   Again - it writes to /etc/pam.d/* files. Be extremely careful here!
@@ -139,7 +138,8 @@ def cleaning(pam):
       except OSError as err:
         print("OS error: {0}".format(err))
         sys.exit(2)
-  print("ok")
+  if mode=="verbose":
+    print("ok")
 
 
 def configure(pam):
@@ -155,6 +155,7 @@ def configure(pam):
       print("error: can't find this PAM configuration file")
       sys.exit(2)
     else:
+      cleaning(pam, "silent")
       try:
         with open(PATH_PAM + p, "a") as pam_file:
           pam_file.write("\n#PAM-accesscontrol configuration\n")
@@ -176,22 +177,22 @@ def show_config(show=False):
   count = 0
   configured = []
   for FILE in pam_list("absolute"):
-    if show==True:
+    if show:
       print ("-------------------------------------------------------" +
-              "-------------------------------------------------")
+             "-------------------------------------------------")
     with open(FILE, 'r') as fd:
       count = 0
       for line in fd:
         if re.search("accesscontrol",line):
           if count == 0:
-            if show==True: print (FILE, "\t\t\t\t", line, end="")
+            if show: print (FILE, "\t\t\t\t", line, end="")
           else:
-            if show==True: print ("\t\t\t\t\t\t", line, end="")
+            if show: print ("\t\t\t\t\t\t", line, end="")
           count = count + 1
           if not re.search('#', line):
             configured.append(FILE)
     if count == 0:
-      if show==True: print (FILE)
+      if show: print (FILE)
   return list(dict(zip(configured,configured)).values())
 
 
@@ -202,7 +203,7 @@ def check_user_config(files):
   Input:  LIST of STRINGs, list of files to check
   Output: VOID
   """
-  if len(files) == 0:
+  if not files:
     files = ['/etc/pam-accesscontrol.d/pam-accesscontrol.conf']
 
   for FILE in files:
@@ -236,10 +237,10 @@ def check_user_config(files):
             printf ("red", "Broken rule, wrong options number:\n\n" + rule)
 
           elif rule.split(" ")[0] not in [pam.upper() for pam in pam_list("relative") + ["sshd-key"]]:
-            printf ("red", "Broken rule, unknown PAM service: \n" + rule)
+            printf ("red", "Broken rule, unknown PAM service: \n\n" + rule)
 
           elif rule.split(" ")[0] not in list(map(lambda x: x[11:].upper(), show_config(False))) + ["SSHD-KEY"]:
-            printf ("orange", "Warning: PAM service is in user's config,\n" +
+            printf ("orange", "Warning: PAM service is used in user's config,\n" +
                               "but it's not configured in /etc/pam.d/* file.\n" +
                               "To fix it, use: pam-accesscontrol pam-configure " +
                               str(rule.split(" ")[0].lower()) + "\n\n" + rule)
@@ -293,7 +294,7 @@ def print_format_table():
     for style in range(8):
         for fg in range(30, 38):
             s1 = ''
-            for bg in range(40,48):
+            for bg in range(40, 48):
                 format = ';'.join([str(style), str(fg), str(bg)])
                 s1 += '\x1b[%sm %s \x1b[0m' % (format, format)
             print(s1)
