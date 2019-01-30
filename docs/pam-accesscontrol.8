@@ -45,18 +45,22 @@ recognizes SSH password and public key authentication and uses Syslog for every 
 It's still in very early stage of development.
 
 
-                                          _____________
-                     /= confirmation ==> |PyQt5 yes/no |          +-+-+-+
-                     |                   |_____________|          +     +  <---- ...
-               ______|__________          _____________           +     +  <---- ftp
-  _______     |                 |        |             |          +     +  <---- sshd
- |systemd|<==>|PAM-accesscontrol| <====> |pam_python.so| <======> + PAM +  <---- login
- |_______|    |_________________|        |_____________|          +     +  <---- sddm
-   |               |           |                                  +     +  <---- lightdm
-   |               |           |__________                        +     +  <---- kdm
- loginctl(1)       |           |          |                       +     +  <---- ...
- provides          |           |          |                       +-+-+-+
- session info   Configfile  Logfile    Syslog
+
+                            *** PAM-accesscontrol Workflow ***
+
+
+		 : > PyQt5 Confirmation [yes/no]
+                 :                                              +-+-+-+
+                 :                                              +     +  <-- kdm
+              #####################      +---------------+      +     +  <-- ftp
+  Config  >>  #                   #      |               |      +     +  <-- sshd
+  Logfile <<  # PAM-accesscontrol # <==> | pam_python.so | <==> + PAM +  <-- login
+  Syslog  <<  #                   #      |               |      +     +  <-- sddm
+              #####################      +---------------+      +     +  <-- lightdm
+                 :                                              +     +  <-- etc.
+                 :                                              +-+-+-+
+                 : < Loginctl(1) < SessionInfo
+
 
 
 Up to verion 0.95, pam-accesscontrol configured itself during the installation process.
