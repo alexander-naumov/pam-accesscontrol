@@ -1,3 +1,15 @@
+pam-accesscontrol (0.97) unstable; urgency=low
+
+  * support mail notification
+  * new window notification icon/design
+  * move pam-accesscontrol(8) to /usr/sbin
+  * addition checks for pam-accesscontrol(8)
+  * SLiM (Simple Login Manager) support
+  * LXDM (Lightweight X11 Display Manager) support
+  * many fixes
+
+ -- Alexander Naumov <alexander_naumov@opensuse.org> Wed, 30 Jan 2019 12:05:07 +0200
+
 pam-accesscontrol (0.96) unstable; urgency=low
 
  * support for SSH public key authentication as a separate service
