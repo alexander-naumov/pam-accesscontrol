@@ -16,7 +16,7 @@
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess as sp
-import syslog, os, sys, re, time, datetime, glob, grp, pwd
+import syslog, os, re, datetime, grp, pwd
 
 from ctypes import *
 from ctypes.util import find_library
