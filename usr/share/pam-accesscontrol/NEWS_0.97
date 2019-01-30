@@ -1,0 +1,38 @@
+          ---------------------------------------
+           What's new in pam-accesscontrol 0.97 ?
+          ---------------------------------------
+
+* Mail notification
+
+Yes, we did it! Since version 0.97 it' possible to send mail
+notification to specific addresses each time when someone logged in
+via specified service.
+We added for that a new separate config file:
+mail-notification.conf. More info could be found in manpage.
+
+* GUI conformation for all PAM services.
+
+Window notification supports now all PAM services. So you can use ASK
+option not only for SSH.
+
+* Support Fedora 29 & xUbuntu_18.10
+
+Two new distros in the list of supported GNU/Linux systems. Enjoy!
+
+* pam-accesscontrol(8)
+
+Our cool configuration tool - pam-accesscontrol(8) - bekommes even
+more checks. By the way, we moved it to the /usr/sbin directory.
+
+* SLiM & LXDM
+
+We're also have some progress with display manager support. SLiM and
+LXDM are in the list of the official supported display managers.
+
+* New commiter/developer
+ 
+And the last one, and also very important news.
+New commiter - Oleg Paul - joined developers team. This collaboration
+has already brought a lot of python changes/fixes, so I see already
+that development process will continue even more intense pace and in
+different directions. Welcome Oleg! Enjoy PAM hacking with Python ;-)
