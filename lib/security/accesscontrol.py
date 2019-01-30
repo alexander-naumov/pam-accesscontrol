@@ -421,7 +421,7 @@ def main(SERVICE, pamh, flags, argv):
     try:
       if int(ret) == 0:
         if allow(SERVICE, user, DEFAULT, False) == "ASK":
-          create_log(SERVICE, rhost, user, mode, "creating new session")
+          if flags == 0: create_log(SERVICE, rhost, user, mode, "creating new session")
           log("access granted")
           return pamh.PAM_SUCCESS
         else:
@@ -435,14 +435,14 @@ def main(SERVICE, pamh, flags, argv):
       return pamh.PAM_AUTH_ERR
 
   elif mode == "CLOSE":
-    create_log(SERVICE, rhost, user, mode, "access denied")
+    if flags == 0: create_log(SERVICE, rhost, user, mode, "access denied")
     log("access denied")
     if str(pamh.service) in ["slim","sddm","lightdm","xdm","kdm"]:
       dialog(DEBUG, rhost, user, "xorg", SERVICE)
     return pamh.PAM_AUTH_ERR
 
   elif mode == "OPEN":
-    create_log( SERVICE, rhost, user, mode, "access granted")
+    if flags == 0: create_log( SERVICE, rhost, user, mode, "access granted")
     log("access granted")
     return pamh.PAM_SUCCESS
 
