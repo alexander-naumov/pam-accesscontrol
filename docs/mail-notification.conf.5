@@ -1,0 +1,65 @@
+.TH "MAIL-NOTIFICATION\&.CONF" "5" "Jan 2019" "File Formats Manual"
+.SH NAME
+/etc/pam-accesscontrol.d/mail-notification.conf \- pam-accesscontrol configuration
+file for mail notification.
+
+.SH CONFIGURATION
+To configure mail notification you will need to fill this config file. This file
+should contain correlation of watched PAM services and mail contacts. 
+.RE
+.PP
+There is no need to do some extra steps for 'enabling' or 'disabling' mail notifications.
+If this file exist, by each logging pam-accesscontrol will try to parse it and figure out
+regarding needing to send mails. If someone is trying to logging it via PAM service
+specified in this file, notification email will send.
+.RE
+.PP
+Right now only one PAM service per line is supported.
+.PP
+<MAIL_SERVER>:<IP_ADDRESS>
+.RE
+<PAM_SERVICE> <LIST_OF_MAIL_ADDRESSES>
+.RE
+<PAM_SERVICE> <LIST_OF_MAIL_ADDRESSES>
+
+.PP
+.RS 3
+MAIL_SERVER
+.RS 4
+IP address of the MTA. This server should be able to relay mails of course.
+.RE
+.PP
+PAM_SERVICE
+.RS 4
+defines PAM service that should be watched. List of PAM services/daemons could be found
+in \fB/etc/pam.d/*\fP directory. Each service could be configured via pam-accesscontrol(8)
+management tool.
+.RE
+.PP
+LIST_OF_MAIL_ADDRESSES
+.RS 4
+Comma separated list of recipients. Space is needed between PAM service name and list of mails.
+\fBNo space\fP is needed between mails.
+
+.SH EXAMPLE
+SERVER:192.168.2.1
+.RE
+SSHD my_email@gnu.org,your_email@example.net
+.RE
+LOGIN your_email@example.org
+
+.SH LOG FILE
+There is no particular log file for sending mails, but pam-accesscontrol will protocol
+about all problems to syslog (even if debug modus in the main configuration file is disabled).
+
+.SH AUTHOR
+Written by Alexander Naumov <alexander_naumov@opensuse.org>
+.PP
+GitHub: https://github.com/alexander-naumov/pam-accesscontrol
+
+.SH "SEE ALSO"
+.BR mail(1),
+.BR postfix(1),
+.BR sendmail(1),
+.BR pam-accesscontrol(8)
+.BR pam-accesscontrol.conf (5)
