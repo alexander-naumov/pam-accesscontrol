@@ -20,12 +20,13 @@ option not only for SSH.
 * Support new distros and architectures.
 
 New distros in the list of supported GNU/Linux systems. Enjoy!
-- Fedora_29 (i586, x86_64)
+- Fedora_29 (i586, x86_64, aarch64, ppc64le)
 - Fedora_Rawhide (x84_64, aarch64)
 - xUbuntu_18.10 (x86_64)
 - Debian_9 (aarch64)
 - CentOS_7 (aarch64)
 - openSUSE_Factory (ppc64, aarch64)
+
 
 * pam-accesscontrol(8)
 
