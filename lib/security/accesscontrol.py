@@ -354,11 +354,12 @@ def send_mail(pamh):
   if not os.path.exists("/etc/pam-accesscontrol.d/mail-notification.conf"):
     return
 
-  import smtplib
+  import smtplib, socket
   server = None
   ADDR   = []
+  MY_IP  = socket.gethostbyname(socket.gethostname())
 
-  subject  = '[PAM-ACCESSCONTROL] Host ' + pamh.rhost + ' | Service ' + pamh.service
+  subject  = "[PAM-ACCESSCONTROL] " + MY_IP + " : " + pamh.service
   fromaddr = 'pam-accesscontrol@localhost'
 
   for rule in configuration("mail-notification.conf"):
@@ -373,7 +374,12 @@ def send_mail(pamh):
   if ADDR:
     toaddr = ", ".join(ADDR)
     msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromaddr, toaddr, subject))
-    msg = msg + "Security notification\n\nUser: " + pamh.get_user()
+    msg = (msg + "*** Security notification ***\n" +
+                 "\nSource:  " + str(pamh.rhost) +
+                 "\nTarget:  " + MY_IP +
+                 "\nService: " + pamh.service +
+                 "\nUser:    " + str(pamh.get_user()) +
+                 "\n\nSuccessfully logged in")
   else:
     log("can't send mail... no recipient mail address found.")
     return
