@@ -38,12 +38,3 @@ more checks. By the way, we moved it to the /usr/sbin directory.
 
 We're also have some progress with display manager support. SLiM and
 LXDM are in the list of the official supported display managers.
-
-
-* New commiter/developer
- 
-And the last one, but is also very important news!
-New commiter - Oleg Paul - joined developers team. This collaboration
-has already brought a lot of python changes/fixes, so I see already
-that development process will continue even more intense pace and in
-different directions. Welcome Oleg! Enjoy PAM hacking with Python ;-)
