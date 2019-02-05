@@ -357,7 +357,10 @@ def send_mail(pamh):
   import smtplib, socket
   server = None
   ADDR   = []
-  MY_IP  = socket.gethostbyname(socket.gethostname())
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.connect(("8.8.8.8", 80))
+  MY_IP = s.getsockname()[0]
+  s.close()
 
   subject  = "[PAM-ACCESSCONTROL] " + MY_IP + " : " + pamh.service
   fromaddr = 'pam-accesscontrol@localhost'
