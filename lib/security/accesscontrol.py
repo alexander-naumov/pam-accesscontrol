@@ -163,7 +163,14 @@ def config_parser(SERVICE, DEBUG):
   for rule in [c for c in configuration("pam-accesscontrol.conf") if len(c) > 5]:
     if DEBUG: log("rule: " + str(rule))
     dic = {}
-    if len(rule.split(" ")) != 4:
+    if rule[0] == '#':
+      pass
+
+    elif re.search(':', rule):
+      if rule.split(':')[0].upper() not in ['MAILSERVER', 'DEBUG', 'DEFAULT']:
+        if DEBUG: log("Wrong option, ignoring: " + str(rule))
+
+    elif len(rule.split(" ")) != 4:
       if DEBUG: log("broken rule, wrong number of options... skipping: " +str(rule))
 
     elif rule.split(" ")[0] != SERVICE.upper():
