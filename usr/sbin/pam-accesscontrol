@@ -19,9 +19,9 @@
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess as sp
-import os, sys, re, glob, shutil, platform
+import os, sys, re, glob, shutil, platform, socket
 
-VERSION = "v0.97"
+VERSION = "v0.98 Beta"
 PATH_PAM = "/etc/pam.d/"
 
 def printf(clr, string):
@@ -231,6 +231,14 @@ def check_user_config(files):
               printf ("green", rule)
             else:
               printf ("red", "DEBUG should be TRUE or FALSE: \n\n" + rule)
+            continue
+
+          if rule[:11] == "MAILSERVER:":
+            try:
+              socket.inet_aton(rule[11:])
+              printf("green", rule)
+            except:
+              printf("orange", "It's better if you can specify the IP address of the \nmail server:\n" + rule)
             continue
 
           if len(rule.split(" ")) != 4:
