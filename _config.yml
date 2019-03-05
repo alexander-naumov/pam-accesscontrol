@@ -1,3 +1,5 @@
 theme: jekyll-theme-hacker
 title: pam-accesscontrol
-description: PAM management system to control access to host.
+description: PAM management system to control access to host
+show_downloads: true
+google_analytics:
