@@ -17,15 +17,15 @@ personal use.
 ## Workflow
 
 ```
-                 | ->> PyQt5 Confirmation [allow or not]
+                 | ->> PyQt5_confirmation [allow or not]
                  |                                              +-+-+-+
-                 |                                              +     +  <-- kdm
-               __|________________       +---------------+      +     +  <-- ftp
+                 |      | ->> notification_mails                +     +  <-- kdm
+               __|______|_________        _______________       +     +  <-- ftp
   Config ->>  |                   |      |               |      +     +  <-- sshd
               | PAM-accesscontrol | <==> | pam_python.so | <==> + PAM +  <-- login
   Syslog <<-  |                   |      |               |      +     +  <-- sddm
- Logfile <<-  |___________________|      +---------------+      +     +  <-- lightdm
-                 |                                              +     +  <-- etc.
+ Logfile <<-  |___________________|      |_______________|      +     +  <-- lightdm
+                 |                                              +     +  <-- ...
                  |                                              +-+-+-+
                  | <<- Loginctl(1) <<- SessionInfo
 
