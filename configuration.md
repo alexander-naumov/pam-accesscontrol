@@ -39,7 +39,7 @@ This will be interpreted as a same session until there is at lest one active ope
 After remote user closes its last session, pam-accesscontrol calls an notification (Qt window)
 to inform local user about it. After that confirmation will be needed again.
 
-`NUMBER` is used to set limit for numbers of logged users. _PARAMETER_ for this OPTION uses ":"
+`NUMBER` is used to set limit for numbers of logged users. _PARAMETER_ for this _OPTION_ uses ":"
 as a separator between value of the _TARGET_ and value for its _PARAMETER_. For example, this
 sets limit for 3 users for group 'lp':
 
