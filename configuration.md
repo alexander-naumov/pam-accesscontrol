@@ -158,7 +158,9 @@ That will work for user B only if user A confirms establishing new SSH session.
 In case you want to allow access for user B without confirmation, change option `ASK`
 to `OPEN`:
 
-```SSHD-KEY ASK GROUP admin => SSHD-KEY OPEN GROUP admin
+```
+SSHD-KEY ASK GROUP admin 
+SSHD-KEY OPEN GROUP admin
 ```
 
 
@@ -189,7 +191,6 @@ Group `ALL` means everyone. Use capital letters: `ALL`, not "all" or "All"!
 
 ### Configuraion 5:
 Everyone can to login via all services, but for establisching SSH-session confirmation is necessary.
-
 
 Keep in mind, if there is no active X session (in this case nobody will be able
 to confirm the opening/creating of the new SSH-session (looked X session is an active
