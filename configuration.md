@@ -192,13 +192,10 @@ Group `ALL` means everyone. Use capital letters: `ALL`, not "all" or "All"!
 ### Configuraion 5:
 Everyone can to login via all services, but for establisching SSH-session confirmation is necessary.
 
-Keep in mind, if there is no active X session (in this case nobody will be able
-to confirm the opening/creating of the new SSH-session (looked X session is an active
-session)), pam-accesscontrol interprets an ASK rule as OPEN. In other words, SSH access
-will be open (remote users still will need to use passwords or passphrase for its
-ssh-keys, i.e. standart SSH auth mechanism).
-.PP
-.RS 7
+Keep in mind, if there is no active X session (in this case nobody will be able to confirm
+opening/creating of the new SSH-session (looked X session is an active session)), pam-accesscontrol
+interprets an `ASK` rule as `OPEN`. In other words, SSH access will be open (remote users still will
+need to use passwords or passphrase for its ssh-keys, i.e. standart SSH auth mechanism).
 
 ```
 DEFAULT:OPEN
