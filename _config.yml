@@ -2,3 +2,8 @@ theme: jekyll-theme-hacker
 title: pam-accesscontrol
 description: PAM management system to control access to host
 show_downloads: true
+
+github:
+  tar_url: https://github.com/alexander-naumov/pam-accesscontrol/archive/v0.97.tar.gz
+  stable_packages: https://software.opensuse.org//download.html?project=home%3AAlexander_Naumov%3Apam-accesscontrol&package=pam-accesscontrol
+  unstable_packages: https://software.opensuse.org//download.html?project=home%3AAlexander_Naumov%3ADEV-pam-accesscontrol&package=pam-accesscontrol
