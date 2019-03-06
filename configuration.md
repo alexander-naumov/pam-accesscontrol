@@ -8,92 +8,85 @@ layout: default
 To configure pam-accesscontrol you will need to fill config file. This file should
 contain list of rules. Each rule has to include exactly 4 fields separated by spaces:
 
-`<SERVICE> <OPTION> <TARGET> <PARAMETERS>`
+```
+<SERVICE> <OPTION> <TARGET> <PARAMETERS>
+```
 
 ### SERVICE
-defines \fIPAM\fR service that should be managed. List of PAM services/daemons could be found
-in \fB/etc/pam.d/*\fP directory. Each service could be configured via pam-accesscontrol(8)
+defines `PAM` service that should be managed. List of PAM services could be found
+in **/etc/pam.d/** directory. Each service could be configured via pam-accesscontrol(8)
 management tool.
-.PP
-Special SERVICE is \fBsshd\fP. It manages incoming SSH connections (from local- and remote hosts)
-by using \fIpassword\fR authentication. There is other SSH service called \fBsshd-key\fP. It is
-similar to sshd, but it managed the \fIssh-public-key\fR authentication based connections only.
-Both SERVICEs points to the \fB/etc/pam.d/sshd\fP file, but in configuration file should be
-specified what kind of connections should be managed. It is important to understand: \fBsshd\fP
-does nothing with ssh-public-key authentication and on the contrary - \fBsshd-key\fP not managed
+
+
+Special SERVICE is `sshd`. It manages incoming SSH connections (from local- and remote hosts)
+by using **password** authentication. There is other SSH service called `sshd-key`. It is
+similar to sshd, but it managed the **public key** authentication based connections only.
+Both SERVICEs points to the **/etc/pam.d/sshd** file, but in configuration file should be
+specified what kind of connections should be managed. It is important to understand: `sshd`
+does nothing with ssh-public-key authentication and on the contrary - `sshd-key` not managed
 password authentication sessions.
-.RE
-.PP
+
 ### OPTION
-behavior for its SERVICE. It could be one of 4 types: \fIOPEN\fR, \fICLOSE\fR, \fIASK\fR
-or \fINUMBER\fR. They change the access configuration.
+behavior for its SERVICE. It could be one of the 4 types: `OPEN`, `CLOSE`, `ASK` or `NUMBER`.
+They change the access configuration.
 
-.RS 6
-\fIOPEN\fR and \fICLOSE\fR will give access for remote user or not.
-.RE
+`OPEN` and `CLOSE` will give access for remote user or not.
 
-.RS 6
-\fIASK\fR is used to open access, but only with user confirmation. In this case local user
-will be asked (by using Tk window) about permission for creating new session. After new session
+`ASK` is used to open access, but only with user confirmation. In this case local user
+will be asked (by using Qt window) about permission for creating new session. After new session
 will be established, remote user can easily create next sessions without new confirmations.
 This will be interpreted as a same session until there is at lest one active open session.
-After remote user closes last session, pam-accesscontrol calls an notification (Tk window) to
+After remote user closes last session, pam-accesscontrol calls an notification (Qt window) to
 inform local user about it. After that for creating a new session it will be need to get
 confirmation again.
-.RE
 
-.RS 6
-\fINUMBER\fR is used to set limit for logged users. PARAMETER for this OPTION uses ":" as a
+`NUMBER` is used to set limit for logged users. PARAMETER for this OPTION uses ":" as a
 separator between value of the TARGET and value for its PARAMETER. For example, this sets
 limit for 3 users from group 'lp':
-.PP
-.RS 7
+
+```
 SSHD NUMBER GROUP lp:3
-.RE
-.PP
+```
+
+
 Keep in mind, that it doesn't open or close access for user automaticaly. It needed to be
 defined additionally. For example, this settings should be used for configuration where just
 one user from group 'admin' may have SSH access:
-.PP
-.RS 7
+
+```
 SSHD OPEN GROUP admin
-.br
 SSHD NUMBER GROUP admin:1
-.RE
-.PP
+```
+
 Also very important to understand that NUMBER doesn't sets limits for number of sessions,
 but for remote users (that can be login to this mashine) only. In other words, using
 configuration above only one user from group admin can establish SSH session, but number
 of sessions is not limited.
-.RE
-.RE
 
 ### TARGET
-defines target for SERVICE. At the moment supported targets are \fIUSER\fR and
-\fIGROUP\fR. GROUPs includes and supports normal POSIX groups, primary groups and LDAP
+defines target for SERVICE. At the moment supported targets are `USER` and
+`GROUP`. GROUPs includes and supports normal POSIX groups, primary groups and LDAP
 groups (from, for example, FreeIPA or Active Directory).
-.RE
+
 
 ### PARAMETERS
 this field defines values for OPTION. It's possible to set list of parameters in one line;
 use "," as a separator for that. No space is needed.
-.PP
+
+
 This example demonstrates setting where SSH access via public-key authentication is open
 for users 'tom' and 'alex' only:
-.PP
-.RS 7
+
+```
 SSHD-KEY OPEN USERS tom,alex
-.RE
-.PP
+```
+
 For NUMBER is also used ":" symbol to split values and its parameters:
-.PP
-.RS 7
+
+```
 SSHD OPEN GROUP heroes,lp
-.br
 SSHD NUMBER GROUP heroes:2,lp:3
-.RE
-.RE
-.RE
+```
 
 
 .PP
