@@ -2,8 +2,6 @@
 layout: default
 ---
 
-## Description
-
 PAM-accesscontrol is the highly intellectual and easily configurable system to control
 access to host via PAM interfaces. It makes it possible to manages access for user,
 group of users or LDAP-groups (supports FreeIPA and Active Directory) by adding just one
