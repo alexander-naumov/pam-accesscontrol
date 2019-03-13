@@ -253,7 +253,7 @@ def check_user_config(files):
                               "To fix it, use: pam-accesscontrol pam-configure " +
                               str(rule.split(" ")[0].lower()) + "\n\n" + rule)
 
-          elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER']:
+          elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER', 'PIN']:
             printf ("red", "Broken rule, second parameter is wrong: \n\n" + rule)
 
           elif rule.split(" ")[2] not in ['USER', 'GROUP']:
