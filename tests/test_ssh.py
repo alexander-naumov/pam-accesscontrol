@@ -26,6 +26,8 @@ import subprocess as sp
 
 def cmd_show_remote_list(LIST):
   """
+  It doesn't copy or move anything. It checks the regex of the target files list.
+  It's useful to see this list before moving it.
   """
   print("------------------------------------------------------------------------------------------------------")
   print("SHA256                                                           | FILES on " + str(hostname))
@@ -37,6 +39,10 @@ def cmd_show_remote_list(LIST):
 
 def sha_check(SHA256, FILE_R, FILE_L):
   """
+  This function compares sha256 sum of the new local file with the sum of the
+  original remote file. TCP/IP provides a reliability at the transport layer
+  ONLY, so it doesn't provide 100% of the DATA reliability.
+  It's the second check before we remove remote file.
   """
   try:
     sha = sp.getoutput(sp.getoutput("which sha256sum") + " " + FILE_L).split("  ")[0]
@@ -54,6 +60,7 @@ def sha_check(SHA256, FILE_R, FILE_L):
 
 def test_sha_error(FILE):
   """
+  It have to immulate an copying errors ;-)
   """
   out = sp.getoutput("echo ERROR >> " + FILE)
 
@@ -61,6 +68,23 @@ def test_sha_error(FILE):
 p = argparse.ArgumentParser(
      formatter_class=argparse.RawDescriptionHelpFormatter,
      epilog = '''
+         @@@@@@@@@@@@@@@@@@@@@         
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+ ,@@@@@@@@@@,             ,@@@@@@@@@@, 
+@@@@@@@@@* @@@@/       %@@@@ *@@@@@@@@@
+@@@@@@@@@@ @@@@@       @@@@@ @@@@@@@@@@
+@@@@@@@@@@ @@@@@.......@@@@@ @@@@@@@@@@
+@@@@@#    @@@@@@@@@@@@@@@@@@@    %@@@@@
+         @@@@@@@(  /  (@@@@@@@         
+        %@@%@% @*& . @&  @@%@&%        
+       @@@@@@ /           @@@@@@       
+      @@@@@@               @@@@@@      
+     @@@@@@@@#@           @@@@@@@@     
+    @@@@@@@@@@&@./   /.  @@@@@@@@@@    
+    @@@@@@@@@@@@   @   @@@@@@@@@@@@    
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@   
      ''')
 
 p.add_argument('-host',
@@ -71,7 +95,7 @@ p.add_argument('-host',
 p.add_argument('-user',
      required=True,
      dest='user',
-     help="username of the target host")
+     help="Username of the target host")
 
 p.add_argument('-port',
      required=False,
