@@ -1,0 +1,21 @@
+          ---------------------------------------
+           What's new in pam-accesscontrol 0.98 ?
+          ---------------------------------------
+
+* New pam-python version
+
+Rebuild and tested with the new pam-python version - 1.0.7.
+
+
+* Two-factor authentication
+
+Since version 0.98 pam-accesscontrol can send auto generated
+one time PIN via email. This PIN should be used for as a 2FA
+for SSH authentification.
+
+
+* PKI
+
+Now our little baby knows what is GPG and will use public gpg
+keys for the email encryption (PINs used for 2FA could be also
+encrypted by using public gpg-keys).
