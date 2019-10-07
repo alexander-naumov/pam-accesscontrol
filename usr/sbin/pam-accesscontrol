@@ -159,8 +159,8 @@ def configure(pam):
       try:
         with open(PATH_PAM + p, "a") as pam_file:
           pam_file.write("\n#PAM-accesscontrol configuration\n")
-          pam_file.write("auth        required     pam_python.so accesscontrol.py\n")
-          pam_file.write("session     required     pam_python.so accesscontrol.py\n")
+          pam_file.write("auth        required     pam_python.so  /lib64/security/accesscontrol.py\n")
+          pam_file.write("session     required     pam_python.so  /lib64/security/accesscontrol.py\n")
       except OSError as err:
         print("OS error: {0}".format(err))
         sys.exit(2)
