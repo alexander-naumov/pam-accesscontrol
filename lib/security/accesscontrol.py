@@ -17,6 +17,8 @@
 
 import subprocess as sp
 import syslog, os, re, datetime, grp, pwd
+import gnupg
+import unicodedata
 
 from ctypes import *
 from ctypes.util import find_library
@@ -172,7 +174,7 @@ def config_parser(SERVICE, DEBUG):
     elif rule.split(" ")[0] != SERVICE.upper():
       if DEBUG: log("other service... skipping: " + str(rule))
 
-    elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER', 'PIN']:
+    elif rule.split(" ")[1] not in ['OPEN', 'CLOSE', 'ASK','NUMBER', 'PIN', 'PINGPG']:
       if DEBUG: log("second parameter is broken: " +str(rule))
 
     elif rule.split(" ")[2] not in ['USER', 'GROUP']:
@@ -295,7 +297,7 @@ def check(access, i, rules, login, DEBUG):
   """
   for r in rules:
     if DEBUG: log("rules: "+ str(r))
-    if i['OPTION'].split(" ")[0] == r: #OPEN, ASK, CLOSE, NUMBER, PIN
+    if i['OPTION'].split(" ")[0] == r: #OPEN, ASK, CLOSE, NUMBER, PIN, PINGPG
       if DEBUG: log("that was interpreted as " + r +": "+ str(i['OPTION'].split(" ")[0]))
 
       if i['OPTION'].split(" ")[1] == "USER":
@@ -314,14 +316,14 @@ def check(access, i, rules, login, DEBUG):
 
 
 def allow(SERVICE, login, DEFAULT, DEBUG):
-  access = {"OPEN":[], "ASK":[], "CLOSE":[], "NUMBER":[], "PIN":[]}
+  access = {"OPEN":[], "ASK":[], "CLOSE":[], "NUMBER":[], "PIN":[], "PINGPG":[]}
   ret = None
 
   for rule in config_parser(SERVICE, DEBUG):
     if DEBUG:
       log("----------------------------------------------")
       log("rule = " +str(rule))
-    access.update(check(access, rule, ["OPEN", "ASK", "CLOSE", "NUMBER", "PIN"], login, DEBUG))
+    access.update(check(access, rule, ["OPEN", "ASK", "CLOSE", "NUMBER", "PIN", "PINGPG"], login, DEBUG))
 
   if DEBUG:
     log("----------------------------------------------")
@@ -330,6 +332,7 @@ def allow(SERVICE, login, DEFAULT, DEBUG):
     log("ASK for   : "+str(access['ASK']))
     log("NUMBER for: "+str(access['NUMBER']))
     log("PIN for   : "+str(access['PIN']))
+    log("PINGPG for: "+str(access['PINGPG']))
 
   if len(access['NUMBER']) > 0:
     if not check_number_in_group(login, access['NUMBER'], DEBUG):
@@ -341,6 +344,7 @@ def allow(SERVICE, login, DEFAULT, DEBUG):
     if i in access['CLOSE']: access['OPEN'].remove(i)
 
   if login in access['CLOSE']:          return "CLOSE"
+  elif login in access['PINGPG']:       return "PINGPG"
   elif login in access['PIN']:          return "PIN"
   elif login in access['ASK']:
     if SERVICE in ["sshd", "sshd-key"]: return "ASK"
@@ -485,6 +489,46 @@ def main(SERVICE, pamh, flags, argv):
     else:
       return pamh.PAM_AUTH_ERR
 
+  if mode == "PINGPG":
+    if flags == 0:
+      return pamh.PAM_SUCCESS
+
+    pin = generate_pin()
+    #if DEBUG: log("Generated PIN: " + str(pin))
+    log("Generated PIN: " + str(pin))
+
+    gpg = gnupg.GPG(gnupghome='/home/alex/.gnupg/')
+    gpg.encoding = 'utf-8'
+
+    public_keys = gpg.list_keys()
+    log("number of keys: " + str(len(public_keys)))
+    log("publickey: " + str(public_keys[0]))
+    log("fingerprint: " + public_keys[0]['fingerprint'])
+    log("type: "+ str(type(public_keys[0]['fingerprint'])))
+    #key = unicodedata.normalize('NFKD', public_keys[0]['fingerprint']).encode('ascii','ignore')
+    key = public_keys[0]['fingerprint'].encode('ascii','ignore')
+    log("type: " + str(type(key)))
+    log("fingerprint: " + str(key))
+
+    enc_data = gpg.encrypt(pin, key)
+    enc_pin = str(enc_data)
+    #if DEBUG: log("Encrypted PIN: " + str(pin))
+    log("Encrypted PIN: " + str(enc_pin))
+
+    log("ok: " + str(enc_data.ok))
+    log("status: " + str(enc_data.status))
+    log("stderr: " + str(enc_data.stderr))
+
+    #send_mail(pamh, 'pin', pin)
+    #resp = pamh.conversation(pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "PIN: "))
+    #if DEBUG: log("Entered PIN: " + str(i.resp))
+
+    #if str(resp.resp) == str(pin):
+    #  return pamh.PAM_SUCCESS
+    #else:
+    #  return pamh.PAM_AUTH_ERR
+    return pamh.PAM_SUCCESS
+
   elif mode == "ASK":
     if DEBUG: log("SHOW ME WINDOW")
     ret = str(dialog(DEBUG, rhost, user, "ask", SERVICE))
@@ -526,8 +570,7 @@ def pam_sm_authenticate(pamh, flags, argv):
   global log_prefix
   log_prefix = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
 
-  log("==============================================")
-  log("authentication")
+  log("==== authentication ==================================")
 
   try:
     log("remote user: "+ str(pamh.get_user()))
@@ -548,7 +591,7 @@ def pam_sm_authenticate(pamh, flags, argv):
 def pam_sm_close_session(pamh, flags, argv):
   global log_prefix
   log_prefix = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
-  log("closing session")
+  log("==== closing session =================================")
 
   DEFAULT, DEBUG = get_default()
   if not check_log("sshd", str(pamh.rhost), str(pamh.get_user())):
@@ -566,8 +609,7 @@ def pam_sm_open_session(pamh, flags, argv):
   global log_prefix
   log_prefix = "pam-accesscontrol(" + str(pamh.service) + ":" + str(pamh.get_user()) +"): "
 
-  log("==============================================")
-  log("open new session")
+  log("==== open new session ================================")
 
   if str(pamh.service) == "sshd":
     if os.path.isfile("/tmp/session-" + str(pamh.pamh)):
