@@ -19,7 +19,7 @@
 #    along with PAM-ACCESSCONTROL.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess as sp
-import os, sys, re, glob, shutil, platform, socket
+import os, sys, re, glob, shutil, distro, socket
 
 VERSION = "v0.98 Beta"
 PATH_PAM = "/etc/pam.d/"
@@ -60,11 +60,11 @@ def distribution():
   Input : VOID
   Output: STRING "DEB" or "RPM", depend on distribution
   """
-  if platform.linux_distribution()[0] in ['Ubuntu', 'Debian']:
+  if distro.id() in ['ubuntu','debian','linuxmint','raspbian']:
     return 'DEB'
-  if platform.linux_distribution()[0] in ['CentOS Linux', 'Fedora', 'openSUSE', 'SuSE']:
+  if distro.id() in ['centos','rhel','fedora','opensuse-leap','opensuse-tumbleweed','sles','mageia','mandriva']:
     return 'RPM'
-  if len(platform.linux_distribution()[0]) == 0:
+  if len(distro.id()) == 0:
     if os.path.exists("/etc/SUSE-brand"): return "RPM"
     if os.path.exists("/etc/redhat-release"): return "RPM"
     if os.path.exists("/etc/fedora-release"): return "RPM"
