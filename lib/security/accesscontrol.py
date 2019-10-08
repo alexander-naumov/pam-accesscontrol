@@ -354,6 +354,9 @@ def allow(SERVICE, login, DEFAULT, DEBUG):
 
 
 def generate_pin():
+  """
+  It generates random 8 characters string
+  """
   import random, string
   return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
@@ -473,6 +476,7 @@ def main(SERVICE, pamh, flags, argv):
   mode = allow(SERVICE, user, DEFAULT, DEBUG)
   if DEBUG: log("main got from allow: "+str(mode))
 
+  ### PIN ##############################################################################
   if mode == "PIN":
     if flags == 0:
       return pamh.PAM_SUCCESS
@@ -482,53 +486,51 @@ def main(SERVICE, pamh, flags, argv):
 
     send_mail(pamh, 'pin', pin)
     resp = pamh.conversation(pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "PIN: "))
-    if DEBUG: log("Entered PIN: " + str(i.resp))
+    if DEBUG: log("Entered PIN: " + str(resp.resp))
 
     if str(resp.resp) == str(pin):
       return pamh.PAM_SUCCESS
     else:
       return pamh.PAM_AUTH_ERR
 
-  if mode == "PINGPG":
+  ### PINGPG ###########################################################################
+  elif mode == "PINGPG":
     if flags == 0:
       return pamh.PAM_SUCCESS
 
     pin = generate_pin()
-    #if DEBUG: log("Generated PIN: " + str(pin))
-    log("Generated PIN: " + str(pin))
+    if DEBUG: log("Generated PIN: " + str(pin))
 
-    gpg = gnupg.GPG(gnupghome='/home/alex/.gnupg/')
-    gpg.encoding = 'utf-8'
-
+    gpg = gnupg.GPG(gnupghome='/home/' + user + '/.gnupg/')
     public_keys = gpg.list_keys()
-    log("number of keys: " + str(len(public_keys)))
-    log("publickey: " + str(public_keys[0]))
-    log("fingerprint: " + public_keys[0]['fingerprint'])
-    log("type: "+ str(type(public_keys[0]['fingerprint'])))
-    #key = unicodedata.normalize('NFKD', public_keys[0]['fingerprint']).encode('ascii','ignore')
+
+    if DEBUG:
+      log("number of keys: " + str(len(public_keys)))
+      log("publickey: " + str(public_keys[0]))
+      log("fingerprint: " + public_keys[0]['fingerprint'])
+      log("type: "+ str(type(public_keys[0]['fingerprint'])))
+
     key = public_keys[0]['fingerprint'].encode('ascii','ignore')
-    log("type: " + str(type(key)))
-    log("fingerprint: " + str(key))
-
     enc_data = gpg.encrypt(pin, key)
-    enc_pin = str(enc_data)
-    #if DEBUG: log("Encrypted PIN: " + str(pin))
-    log("Encrypted PIN: " + str(enc_pin))
+    enc_pin  = str(enc_data)
 
-    log("ok: " + str(enc_data.ok))
-    log("status: " + str(enc_data.status))
-    log("stderr: " + str(enc_data.stderr))
+    if DEBUG:
+      log("Encrypted PIN: " + str(enc_pin))
+      log("ok:     " + str(enc_data.ok))
+      log("status: " + str(enc_data.status))
+      log("stderr: " + str(enc_data.stderr))
 
-    #send_mail(pamh, 'pin', pin)
-    #resp = pamh.conversation(pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "PIN: "))
-    #if DEBUG: log("Entered PIN: " + str(i.resp))
+    send_mail(pamh, 'pin', enc_pin)
+    resp = pamh.conversation(pamh.Message(pamh.PAM_PROMPT_ECHO_OFF, "PIN: "))
 
-    #if str(resp.resp) == str(pin):
-    #  return pamh.PAM_SUCCESS
-    #else:
-    #  return pamh.PAM_AUTH_ERR
-    return pamh.PAM_SUCCESS
+    if DEBUG: log("Entered PIN: " + str(resp.resp))
 
+    if str(resp.resp) == str(pin):
+      return pamh.PAM_SUCCESS
+    else:
+      return pamh.PAM_AUTH_ERR
+
+  ### ASK ##############################################################################
   elif mode == "ASK":
     if DEBUG: log("SHOW ME WINDOW")
     ret = str(dialog(DEBUG, rhost, user, "ask", SERVICE))
@@ -549,6 +551,7 @@ def main(SERVICE, pamh, flags, argv):
       log("something goes wrong... no return value from notification window")
       return pamh.PAM_AUTH_ERR
 
+  ### CLOSE ############################################################################
   elif mode == "CLOSE":
     if flags == 0: create_log(SERVICE, rhost, user, mode, "access denied")
     log("access denied")
@@ -556,6 +559,7 @@ def main(SERVICE, pamh, flags, argv):
       dialog(DEBUG, rhost, user, "xorg", SERVICE)
     return pamh.PAM_AUTH_ERR
 
+  ### OPEN #############################################################################
   elif mode == "OPEN":
     if flags == 0: create_log( SERVICE, rhost, user, mode, "access granted")
     log("access granted")
